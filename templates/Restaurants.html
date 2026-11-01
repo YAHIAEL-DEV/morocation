@@ -1,0 +1,1149 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurants - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8f9fa;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%; border: none;
+            background: #f1f3f4; cursor: pointer;
+            font-size: 14px; transition: all 0.3s;
+        }
+        .back-btn:hover { background: #e5e7eb; }
+        .header h1 { font-size: 18px; font-weight: 600; }
+
+        /* Search */
+        .search-box {
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .search-box input {
+            width: 100%; padding: 12px 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px; font-size: 14px;
+            outline: none; transition: all 0.3s;
+        }
+        .search-box input:focus { border-color: #28a745; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+
+        /* Filters */
+        .filters {
+            display: flex; gap: 8px;
+            padding: 12px 20px;
+            overflow-x: auto; background: white;
+        }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 20px; background: white;
+            font-size: 13px; cursor: pointer;
+            white-space: nowrap; transition: all 0.3s;
+        }
+        .filter-btn.active {
+            background: #28a745; color: white;
+            border-color: #28a745;
+        }
+        .filter-btn:hover:not(.active) { background: #f1f3f4; }
+
+        /* Restaurant Cards */
+        .restaurants-list {
+            padding: 15px 20px;
+            display: flex; flex-direction: column;
+            gap: 15px;
+        }
+        .restaurant-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            cursor: pointer; transition: all 0.3s;
+        }
+        .restaurant-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .restaurant-img {
+            width: 100%; height: 180px;
+            object-fit: cover; display: block;
+        }
+        .restaurant-body { padding: 15px; }
+        .restaurant-title { font-size: 16px; font-weight: 600; margin-bottom: 5px; }
+        .restaurant-location { color: #6c757d; font-size: 13px; margin-bottom: 10px; }
+        .restaurant-meta {
+            display: flex; align-items: center;
+            gap: 15px; margin-bottom: 12px;
+        }
+        .restaurant-rating {
+            background: #28a745; color: white;
+            padding: 3px 8px; border-radius: 4px;
+            font-size: 12px; font-weight: 600;
+        }
+        .restaurant-price { color: #6c757d; font-size: 13px; }
+        .restaurant-price .expensive { color: #dc3545; }
+        .restaurant-price .moderate { color: #ffc107; }
+        .restaurant-price .cheap { color: #28a745; }
+        .restaurant-tags {
+            display: flex; gap: 6px;
+            flex-wrap: wrap; margin-bottom: 12px;
+        }
+        .tag {
+            font-size: 11px; background: #f1f3f4;
+            padding: 4px 10px; border-radius: 4px;
+            color: #495057;
+        }
+        .restaurant-footer {
+            display: flex; justify-content: space-between;
+            align-items: center; padding-top: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+        .restaurant-hours { font-size: 12px; color: #28a745; }
+        .restaurant-hours.closed { color: #dc3545; }
+        .book-btn {
+            padding: 8px 16px; background: #28a745;
+            color: white; border: none;
+            border-radius: 8px; font-size: 12px;
+            font-weight: 600; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .book-btn:hover { background: #218838; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-top: 1px solid #e9ecef;
+            display: flex; justify-content: space-around;
+            padding: 10px 0; z-index: 100;
+        }
+        .nav-item {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 3px;
+            color: #6c757d; text-decoration: none;
+            font-size: 11px; transition: all 0.3s;
+        }
+        .nav-item i { font-size: 18px; }
+        .nav-item.active { color: #28a745; }
+        .nav-item:hover { color: #28a745; }
+
+        /* ============ RESERVATION MODAL ============ */
+        .modal {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000; justify-content: center;
+            align-items: flex-end; backdrop-filter: blur(4px);
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white; width: 100%;
+            max-width: 500px;
+            border-radius: 20px 20px 0 0;
+            max-height: 90vh; overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid #e9ecef;
+            display: flex; justify-content: space-between;
+            align-items: center; background: #f8f9fa;
+            border-radius: 20px 20px 0 0;
+        }
+        .modal-header h2 { font-size: 18px; color: #1f2937; }
+        .close-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%; border: none;
+            background: #e5e7eb; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .close-btn:hover { background: #dc3545; color: white; }
+        .modal-body { padding: 20px; }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex; justify-content: center;
+            gap: 8px; margin-bottom: 20px;
+        }
+        .step {
+            display: flex; align-items: center;
+            gap: 8px; font-size: 12px;
+            color: #9ca3af; font-weight: 500;
+        }
+        .step.active { color: #28a745; }
+        .step.completed { color: #28a745; }
+        .step-dot {
+            width: 24px; height: 24px;
+            border-radius: 50%; background: #e5e7eb;
+            display: flex; align-items: center;
+            justify-content: center; font-size: 11px;
+            font-weight: 700; color: #9ca3af;
+        }
+        .step.active .step-dot { background: #28a745; color: white; }
+        .step.completed .step-dot { background: #28a745; color: white; }
+        .step-line {
+            width: 30px; height: 2px;
+            background: #e5e7eb;
+        }
+        .step.completed + .step-line { background: #28a745; }
+
+        /* Restaurant Preview */
+        .restaurant-preview {
+            display: flex; gap: 15px;
+            margin-bottom: 20px; padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .restaurant-preview img {
+            width: 80px; height: 80px;
+            border-radius: 8px; object-fit: cover;
+        }
+        .restaurant-preview-info h3 {
+            font-size: 16px; margin-bottom: 5px;
+            color: #1f2937;
+        }
+        .restaurant-preview-info p {
+            color: #6c757d; font-size: 13px;
+        }
+        .restaurant-preview-info .preview-price {
+            color: #28a745; font-weight: 600;
+            font-size: 14px; margin-top: 4px;
+        }
+
+        /* Form Groups */
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block; font-size: 13px;
+            font-weight: 600; margin-bottom: 6px;
+            color: #495057;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%; padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px; font-size: 14px;
+            outline: none; transition: all 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Guest Selector */
+        .guest-selector {
+            display: flex; align-items: center;
+            gap: 15px; justify-content: center;
+            padding: 10px; border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .guest-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: 1px solid #28a745;
+            background: white; color: #28a745;
+            font-size: 16px; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .guest-btn:hover { background: #28a745; color: white; }
+        .guest-num {
+            font-size: 16px; font-weight: 600;
+            min-width: 20px; text-align: center;
+        }
+
+        /* ============ PAYMENT SECTION ============ */
+        .payment-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #e5e7eb;
+        }
+        .payment-title {
+            font-size: 16px; font-weight: 700;
+            color: #1f2937; margin-bottom: 15px;
+            display: flex; align-items: center;
+            gap: 8px;
+        }
+        .payment-title i { color: #28a745; }
+
+        /* Payment Methods */
+        .payment-methods {
+            display: flex; gap: 10px;
+            margin-bottom: 15px;
+        }
+        .payment-method {
+            flex: 1; padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px; cursor: pointer;
+            text-align: center; transition: all 0.3s;
+            background: white;
+        }
+        .payment-method:hover { border-color: #28a745; }
+        .payment-method.selected {
+            border-color: #28a745;
+            background: #f0fdf4;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+        .payment-method i {
+            font-size: 24px; margin-bottom: 6px;
+            display: block;
+        }
+        .payment-method .fa-cc-visa { color: #1a1f71; }
+        .payment-method .fa-cc-mastercard { color: #eb001b; }
+        .payment-method .fa-paypal { color: #003087; }
+        .payment-method span {
+            font-size: 11px; font-weight: 600;
+            color: #495057;
+        }
+
+        /* Card Input Styles */
+        .card-input-group {
+            position: relative;
+        }
+        .card-input-group i {
+            position: absolute; right: 12px;
+            top: 50%; transform: translateY(-50%);
+            color: #9ca3af; font-size: 18px;
+        }
+        .card-icon {
+            position: absolute; left: 12px;
+            top: 50%; transform: translateY(-50%);
+            font-size: 20px;
+        }
+        .card-input-group input {
+            padding-left: 40px;
+            padding-right: 40px;
+        }
+
+        /* CVV + Expiry Row */
+        .card-row { display: flex; gap: 10px; }
+        .card-row .form-group { flex: 1; }
+
+        /* Secure Badge */
+        .secure-badge {
+            display: flex; align-items: center;
+            gap: 8px; padding: 10px;
+            background: #f0fdf4; border-radius: 8px;
+            margin-top: 15px; font-size: 12px;
+            color: #28a745;
+        }
+        .secure-badge i { font-size: 16px; }
+
+        /* ============ EMAIL SECTION ============ */
+        .email-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 10px;
+            border: 1px solid #dbeafe;
+        }
+        .email-section label {
+            display: flex; align-items: center;
+            gap: 8px; font-size: 13px;
+            font-weight: 600; color: #1e40af;
+            margin-bottom: 8px;
+        }
+        .email-section label i { color: #3b82f6; }
+        .email-section input {
+            width: 100%; padding: 12px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px; font-size: 14px;
+            outline: none; background: white;
+        }
+        .email-section input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .email-hint {
+            font-size: 11px; color: #6b7280;
+            margin-top: 6px;
+        }
+
+        /* ============ SUMMARY ============ */
+        .reservation-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px; margin-top: 15px;
+        }
+        .summary-title {
+            font-size: 14px; font-weight: 700;
+            color: #1f2937; margin-bottom: 10px;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between;
+            margin-bottom: 8px; font-size: 13px;
+        }
+        .summary-row span:first-child { color: #6c757d; }
+        .summary-row span:last-child { font-weight: 600; color: #1f2937; }
+        .summary-total {
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px; padding-top: 10px;
+            display: flex; justify-content: space-between;
+            font-weight: 700; font-size: 15px;
+        }
+        .summary-total span:last-child { color: #28a745; }
+
+        /* ============ BUTTONS ============ */
+        .btn {
+            width: 100%; padding: 15px;
+            border-radius: 10px; border: none;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
+            display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+        }
+        .btn-primary {
+            background: #28a745; color: white;
+            margin-top: 15px;
+        }
+        .btn-primary:hover { background: #218838; }
+        .btn-primary:disabled {
+            background: #9ca3af; cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: #f3f4f6; color: #374151;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover { background: #e5e7eb; }
+
+        /* ============ SUCCESS SCREEN ============ */
+        .success-screen {
+            display: none; text-align: center;
+            padding: 40px 20px;
+        }
+        .success-screen.show { display: block; }
+        .success-icon {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: #dcfce7;
+            display: flex; align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease;
+        }
+        .success-icon i {
+            font-size: 40px; color: #28a745;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .success-screen h3 {
+            font-size: 22px; color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .success-screen p {
+            color: #6b7280; font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .success-screen .email-sent {
+            background: #eff6ff;
+            padding: 12px; border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #dbeafe;
+        }
+        .success-screen .email-sent i {
+            color: #3b82f6; margin-right: 8px;
+        }
+        .success-screen .email-sent strong {
+            color: #1e40af;
+        }
+        .reservation-code {
+            background: #f3f4f6;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 18px; font-weight: 700;
+            color: #28a745; letter-spacing: 2px;
+            margin: 15px 0; display: inline-block;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .spinner.show { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Error Message */
+        .error-msg {
+            color: #dc3545; font-size: 12px;
+            margin-top: 4px; display: none;
+        }
+        .error-msg.show { display: block; }
+        .input-error { border-color: #dc3545 !important; }
+
+        /* Step Content */
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+
+        /* Payment Form */
+        .payment-form { display: none; }
+        .payment-form.active { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-btn" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h1>Restaurants au Maroc</h1>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Rechercher un restaurant ou ville..." oninput="filterRestaurants()">
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterByType('all', this)">Tout</button>
+        <button class="filter-btn" onclick="filterByType('marocain', this)">Marocain</button>
+        <button class="filter-btn" onclick="filterByType('francais', this)">Français</button>
+        <button class="filter-btn" onclick="filterByType('italien', this)">Italien</button>
+        <button class="filter-btn" onclick="filterByType('asiatique', this)">Asiatique</button>
+        <button class="filter-btn" onclick="filterByType('poissons', this)">Poissons</button>
+        <button class="filter-btn" onclick="filterByType('cafe', this)">Cafés</button>
+    </div>
+
+    <!-- Restaurants List -->
+    <div class="restaurants-list" id="restaurants-list"></div>
+
+    <!-- Bottom Nav -->
+    <nav class="bottom-nav">
+        <a href="Main.html" class="nav-item">
+            <i class="fas fa-home"></i><span>Accueil</span>
+        </a>
+        <a href="6Search.html" class="nav-item">
+            <i class="fas fa-search"></i><span>Explorer</span>
+        </a>
+        <a href="9Reservation.html" class="nav-item">
+            <i class="far fa-calendar-alt"></i><span>Réservations</span>
+        </a>
+        <a href="8Favorites.html" class="nav-item">
+            <i class="far fa-heart"></i><span>Favoris</span>
+        </a>
+        <a href="7Profile.html" class="nav-item">
+            <i class="far fa-user"></i><span>Profil</span>
+        </a>
+    </nav>
+
+    <!-- ============ RESERVATION MODAL ============ -->
+    <div class="modal" id="reservationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Réserver une table</h2>
+                <button class="close-btn" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Progress Steps -->
+                <div class="progress-steps" id="progressSteps">
+                    <div class="step active" id="step1-indicator">
+                        <div class="step-dot">1</div>
+                        <span>Détails</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step2-indicator">
+                        <div class="step-dot">2</div>
+                        <span>Paiement</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step3-indicator">
+                        <div class="step-dot">3</div>
+                        <span>Confirmation</span>
+                    </div>
+                </div>
+
+                <!-- Restaurant Preview -->
+                <div class="restaurant-preview" id="modalPreview"></div>
+
+                <!-- ============ STEP 1: RESERVATION DETAILS ============ -->
+                <div class="step-content active" id="step1">
+                    <form id="reservationForm" onsubmit="return goToPayment(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date de réservation</label>
+                                <input type="date" id="resDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Heure</label>
+                                <input type="time" id="resTime" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nombre de convives</label>
+                            <div class="guest-selector">
+                                <button type="button" class="guest-btn" onclick="changeGuests(-1)">−</button>
+                                <span class="guest-num" id="guestCount">2</span>
+                                <button type="button" class="guest-btn" onclick="changeGuests(1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nom complet</label>
+                            <input type="text" id="resName" placeholder="Votre nom complet" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" id="resPhone" placeholder="+212 6XX XXX XXX" required>
+                        </div>
+
+                        <!-- Email Section -->
+                        <div class="email-section">
+                            <label><i class="fas fa-envelope"></i> Email pour la confirmation</label>
+                            <input type="text" id="resEmail" placeholder="votre@email.com" required>
+                            <p class="email-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Un email de confirmation avec les détails de votre réservation sera envoyé à cette adresse.
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Demandes spéciales (optionnel)</label>
+                            <input type="text" id="resNotes" placeholder="Allergies, occasion spéciale, préférences...">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Continuer vers le paiement
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ============ STEP 2: PAYMENT ============ -->
+                <div class="step-content" id="step2">
+                    <div class="reservation-summary">
+                        <div class="summary-title">Récapitulatif de la réservation</div>
+                        <div class="summary-row">
+                            <span>Restaurant</span>
+                            <span id="summaryRestaurant">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Date & Heure</span>
+                            <span id="summaryDateTime">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Convives</span>
+                            <span id="summaryGuests">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Nom</span>
+                            <span id="summaryName">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Email</span>
+                            <span id="summaryEmail">-</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Frais de réservation</span>
+                            <span>5.00 €</span>
+                        </div>
+                    </div>
+
+                    <div class="payment-section">
+                        <div class="payment-title">
+                            <i class="fas fa-credit-card"></i>
+                            Méthode de paiement
+                        </div>
+
+                        <div class="payment-methods">
+                            <div class="payment-method selected" onclick="selectPayment('visa', this)">
+                                <i class="fab fa-cc-visa"></i>
+                                <span>Visa</span>
+                            </div>
+                            <div class="payment-method" onclick="selectPayment('mastercard', this)">
+                                <i class="fab fa-cc-mastercard"></i>
+                                <span>Mastercard</span>
+                            </div>
+                            <div class="payment-method" onclick="selectPayment('paypal', this)">
+                                <i class="fab fa-paypal"></i>
+                                <span>PayPal</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Payment Form -->
+                        <div class="payment-form active" id="cardPaymentForm">
+                            <div class="form-group">
+                                <label>Nom sur la carte</label>
+                                <input type="text" id="cardName" placeholder="NOM PRÉNOM">
+                            </div>
+                            <div class="form-group">
+                                <label>Numéro de carte</label>
+                                <div class="card-input-group">
+                                    <i class="fas fa-credit-card card-icon"></i>
+                                    <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19">
+                                    <i class="fab fa-cc-visa" id="cardTypeIcon"></i>
+                                </div>
+                            </div>
+                            <div class="card-row">
+                                <div class="form-group">
+                                    <label>Date d'expiration</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input type="text" id="cardCVV" placeholder="123" maxlength="4">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PayPal Form -->
+                        <div class="payment-form" id="paypalForm">
+                            <div class="form-group">
+                                <label>Email PayPal</label>
+                                <input type="text" id="paypalEmail" placeholder="votre@paypal.com">
+                            </div>
+                            <p style="font-size:12px;color:#6b7280;text-align:center;margin-top:10px;">
+                                <i class="fab fa-paypal"></i>
+                                Vous serez redirigé vers PayPal pour finaliser le paiement.
+                            </p>
+                        </div>
+
+                        <div class="secure-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Paiement sécurisé par SSL 256-bit. Vos données sont cryptées.</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="processPayment()">
+                        <span class="spinner" id="paymentSpinner"></span>
+                        <span id="paymentBtnText">Payer 5.00 €</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="goBackToDetails()">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour aux détails
+                    </button>
+                </div>
+
+                <!-- ============ STEP 3: SUCCESS ============ -->
+                <div class="success-screen" id="step3">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h3>Réservation confirmée !</h3>
+                    <p>Votre table a été réservée avec succès.</p>
+                    <div class="reservation-code" id="reservationCode">RES-000000</div>
+                    <p>Conservez ce code pour votre venue.</p>
+                    <div class="email-sent">
+                        <i class="fas fa-paper-plane"></i>
+                        Un email de confirmation a été envoyé à <strong id="confirmEmail">-</strong>
+                    </div>
+                    <p style="font-size:12px;color:#6b7280;margin-top:10px;">
+                        <i class="fas fa-clock"></i>
+                        Veuillez arriver 15 minutes avant l'heure réservée.
+                    </p>
+                    <button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">
+                        <i class="fas fa-home"></i>
+                        Retour aux restaurants
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ RESTAURANTS DATA ============
+        const restaurants = [
+            // Marrakech
+            { id: 'dar-yacout', name: 'Dar Yacout', city: 'Marrakech', type: 'marocain', price: '€€€', image: '/static/images/img_57450ec8.jpg', rating: 4.7, reviews: 520, tags: ['Tajine', 'Couscous', 'Vue rooftop'], hours: '12:00-23:00' },
+            { id: 'nomad', name: 'Nomad', city: 'Marrakech', type: 'marocain', price: '€€', image: '/static/images/img_7f3b1975.jpg', rating: 4.6, reviews: 430, tags: ['Fusion', 'Médina', 'Terrasse'], hours: '12:00-22:30' },
+            { id: 'le-fondouk', name: 'Le Foundouk', city: 'Marrakech', type: 'marocain', price: '€€€', image: '/static/images/img_57450ec8.jpg', rating: 4.5, reviews: 380, tags: ['Gastronomie', 'Riad', 'Vin'], hours: '19:00-23:00' },
+            { id: 'café-arab', name: 'Café Arabe', city: 'Marrakech', type: 'cafe', price: '€€', image: '/static/images/img_5bb18e93.jpg', rating: 4.4, reviews: 290, tags: ['Café', 'Thé', 'Pâtisseries'], hours: '08:00-20:00' },
+            // Casablanca
+            { id: 'la-sqala', name: 'La Sqala', city: 'Casablanca', type: 'marocain', price: '€€', image: '/static/images/img_57450ec8.jpg', rating: 4.5, reviews: 410, tags: ['Grillades', 'Fort', 'Vue mer'], hours: '12:00-23:00' },
+            { id: 'le-petit-rocher', name: 'Le Petit Rocher', city: 'Casablanca', type: 'francais', price: '€€€', image: '/static/images/img_50a31e99.jpg', rating: 4.6, reviews: 350, tags: ['Fruits de mer', 'Vue océan', 'Romantique'], hours: '12:00-23:30' },
+            { id: 'sushi-club', name: 'Sushi Club', city: 'Casablanca', type: 'asiatique', price: '€€', image: '/static/images/img_2ddb5e79.jpg', rating: 4.3, reviews: 280, tags: ['Sushi', 'Japonais', 'Livraison'], hours: '11:30-23:00' },
+            { id: 'paul-casa', name: 'Paul', city: 'Casablanca', type: 'cafe', price: '€', image: '/static/images/img_5bb18e93.jpg', rating: 4.2, reviews: 190, tags: ['Boulangerie', 'Petit-déjeuner', 'Salades'], hours: '07:00-21:00' },
+            // Fès
+            { id: 'dar-roumana', name: 'Dar Roumana', city: 'Fès', type: 'marocain', price: '€€€', image: '/static/images/img_57450ec8.jpg', rating: 4.8, reviews: 310, tags: ['Gastronomie', 'Riad', 'Fassi'], hours: '19:00-22:30' },
+            { id: 'cafe-clock', name: 'Café Clock', city: 'Fès', type: 'cafe', price: '€', image: '/static/images/img_5bb18e93.jpg', rating: 4.5, reviews: 420, tags: ['Café', 'Culture', 'Musique'], hours: '09:00-21:00' },
+            { id: 'la-maison-bleue', name: 'La Maison Bleue', city: 'Fès', type: 'marocain', price: '€€€', image: '/static/images/img_57450ec8.jpg', rating: 4.4, reviews: 260, tags: ['Traditionnel', 'Andalous', 'Palais'], hours: '12:00-22:00' },
+            // Tanger
+            { id: 'le-saveur', name: 'Le Saveur du Poisson', city: 'Tanger', type: 'poissons', price: '€€', image: '/static/images/img_50a31e99.jpg', rating: 4.7, reviews: 380, tags: ['Poisson frais', 'Port', 'Vue mer'], hours: '11:00-22:00' },
+            { id: 'el-tangerino', name: 'El Tangerino', city: 'Tanger', type: 'espagnol', price: '€€', image: '/static/images/img_57450ec8.jpg', rating: 4.4, reviews: 220, tags: ['Tapas', 'Médina', 'Ambiance'], hours: '12:00-23:00' },
+            // Essaouira
+            { id: 'chalet-de-la-plage', name: 'Chalet de la Plage', city: 'Essaouira', type: 'poissons', price: '€€', image: '/static/images/img_50a31e99.jpg', rating: 4.6, reviews: 340, tags: ['Grillade de poisson', 'Plage', 'Vue'], hours: '11:00-22:30' },
+            { id: 'taros', name: 'Taros', city: 'Essaouira', type: 'marocain', price: '€€', image: '/static/images/img_7f3b1975.jpg', rating: 4.5, reviews: 290, tags: ['Fusion', 'Rooftop', 'Musique live'], hours: '11:00-23:00' },
+            // Agadir
+            { id: 'pure-passion', name: 'Pure Passion', city: 'Agadir', type: 'francais', price: '€€€', image: '/static/images/img_50a31e99.jpg', rating: 4.5, reviews: 270, tags: ['Gastronomie', 'Marina', 'Créative'], hours: '19:00-23:00' },
+            { id: 'le-jardin-d-eau', name: "Le Jardin d'Eau", city: 'Agadir', type: 'marocain', price: '€€', image: '/static/images/img_57450ec8.jpg', rating: 4.3, reviews: 180, tags: ['Jardin', 'Piscine', 'Famille'], hours: '12:00-22:30' },
+            // Rabat
+            { id: 'dinarjat', name: 'Dinarjat', city: 'Rabat', type: 'marocain', price: '€€€', image: '/static/images/img_57450ec8.jpg', rating: 4.7, reviews: 330, tags: ['Traditionnel', 'Musique andalouse', 'Riad'], hours: '12:00-23:00' },
+            { id: 'ty-potes', name: 'Ty Potes', city: 'Rabat', type: 'francais', price: '€€', image: '/static/images/img_50a31e99.jpg', rating: 4.4, reviews: 210, tags: ['Bistrot', 'Crêpes', 'Ambiance'], hours: '11:00-22:00' },
+            // Ouarzazate
+            { id: 'kasbah-du-toubkal', name: 'Kasbah du Toubkal', city: 'Ouarzazate', type: 'marocain', price: '€€', image: '/static/images/img_57450ec8.jpg', rating: 4.6, reviews: 190, tags: ['Berbère', 'Montagne', 'Authentique'], hours: '12:00-21:00' },
+            // Chefchaouen
+            { id: 'bab-el-ayn', name: 'Bab el Ayn', city: 'Chefchaouen', type: 'marocain', price: '€', image: '/static/images/img_57450ec8.jpg', rating: 4.3, reviews: 240, tags: ['Vue médina', 'Tajine', 'Petit prix'], hours: '08:00-22:00' },
+            { id: 'pizzeria-bab', name: 'Pizzeria Bab', city: 'Chefchaouen', type: 'italien', price: '€', image: '/static/images/img_2ddb5e79.jpg', rating: 4.2, reviews: 160, tags: ['Pizza', 'Four à bois', 'Terrasse'], hours: '11:00-22:30' }
+        ];
+
+        let currentFilter = 'all';
+        let searchTerm = '';
+        let selectedRestaurant = null;
+        let guests = 2;
+        let currentStep = 1;
+        let selectedPaymentMethod = 'visa';
+        let reservationData = {};
+
+        // ============ RENDER RESTAURANTS ============
+        function renderPriceSymbol(price) {
+            const symbols = {
+                '€': '<span class="cheap">€</span>',
+                '€€': '<span class="moderate">€€</span>',
+                '€€€': '<span class="expensive">€€€</span>'
+            };
+            return symbols[price] || price;
+        }
+
+        function renderRestaurants() {
+            const list = document.getElementById('restaurants-list');
+            let filtered = restaurants;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(r => r.type === currentFilter);
+            }
+            if (searchTerm) {
+                filtered = filtered.filter(r => 
+                    r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    r.city.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+
+            list.innerHTML = filtered.map(r => `
+                <div class="restaurant-card" onclick="openReservation('${r.id}')">
+                    <img src="${r.image}" class="restaurant-img" alt="${r.name}">
+                    <div class="restaurant-body">
+                        <div class="restaurant-title">${r.name}</div>
+                        <div class="restaurant-location">
+                            <i class="fas fa-map-marker-alt"></i> ${r.city}
+                        </div>
+                        <div class="restaurant-meta">
+                            <span class="restaurant-rating">${r.rating}</span>
+                            <span style="color:#6c757d;font-size:12px">(${r.reviews} avis)</span>
+                            <span class="restaurant-price">${renderPriceSymbol(r.price)}</span>
+                        </div>
+                        <div class="restaurant-tags">
+                            ${r.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                        </div>
+                        <div class="restaurant-footer">
+                            <span class="restaurant-hours">
+                                <i class="far fa-clock"></i> ${r.hours}
+                            </span>
+                            <button class="book-btn">Réserver</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterByType(type, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = type;
+            renderRestaurants();
+        }
+
+        function filterRestaurants() {
+            searchTerm = document.getElementById('searchInput').value.trim();
+            renderRestaurants();
+        }
+
+        // ============ RESERVATION MODAL ============
+        function openReservation(restaurantId) {
+            selectedRestaurant = restaurants.find(r => r.id === restaurantId);
+            if (!selectedRestaurant) return;
+
+            // Reset modal state
+            currentStep = 1;
+            updateStepDisplay();
+            document.getElementById('reservationForm').reset();
+            guests = 2;
+            document.getElementById('guestCount').textContent = guests;
+            document.getElementById('step3').classList.remove('show');
+
+            // Set defaults
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('resDate').value = today;
+            document.getElementById('resTime').value = '19:00';
+
+            // Preview
+            document.getElementById('modalPreview').innerHTML = `
+                <img src="${selectedRestaurant.image}" alt="${selectedRestaurant.name}">
+                <div class="restaurant-preview-info">
+                    <h3>${selectedRestaurant.name}</h3>
+                    <p>${selectedRestaurant.city} • ${selectedRestaurant.tags[0]}</p>
+                    <p class="preview-price">Frais de réservation: 5.00 €</p>
+                </div>
+            `;
+
+            document.getElementById('reservationModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('reservationModal').classList.remove('show');
+        }
+
+        function changeGuests(delta) {
+            guests += delta;
+            if (guests < 1) guests = 1;
+            if (guests > 20) guests = 20;
+            document.getElementById('guestCount').textContent = guests;
+        }
+
+        // ============ STEP MANAGEMENT ============
+        function updateStepDisplay() {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + currentStep).classList.add('active');
+
+            // Update indicators
+            document.querySelectorAll('.step').forEach((s, i) => {
+                s.classList.remove('active', 'completed');
+                if (i + 1 < currentStep) s.classList.add('completed');
+                else if (i + 1 === currentStep) s.classList.add('active');
+            });
+
+            // Update title
+            const titles = {
+                1: 'Réserver une table',
+                2: 'Paiement sécurisé',
+                3: 'Confirmation'
+            };
+            document.getElementById('modalTitle').textContent = titles[currentStep];
+        }
+
+        function goToPayment(e) {
+            e.preventDefault();
+
+            const date = document.getElementById('resDate').value;
+            const time = document.getElementById('resTime').value;
+            const name = document.getElementById('resName').value.trim();
+            const phone = document.getElementById('resPhone').value.trim();
+            const email = document.getElementById('resEmail').value.trim();
+            const notes = document.getElementById('resNotes').value;
+
+            // Validation
+            if (!date || !time || !name || !phone || !email) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return false;
+            }
+
+            // Email validation s7i7a - b regex sade9a
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Veuillez entrer un email valide');
+                return false;
+            }
+
+            // Save data
+            reservationData = {
+                restaurant: selectedRestaurant,
+                date, time, guests, name, phone, email, notes
+            };
+
+            // Update summary
+            document.getElementById('summaryRestaurant').textContent = selectedRestaurant.name;
+            document.getElementById('summaryDateTime').textContent = `${date} à ${time}`;
+            document.getElementById('summaryGuests').textContent = `${guests} personne(s)`;
+            document.getElementById('summaryName').textContent = name;
+            document.getElementById('summaryEmail').textContent = email;
+
+            // Go to payment step
+            currentStep = 2;
+            updateStepDisplay();
+            return false;
+        }
+
+        function goBackToDetails() {
+            currentStep = 1;
+            updateStepDisplay();
+        }
+
+        // ============ PAYMENT METHODS ============
+        function selectPayment(method, element) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+            element.classList.add('selected');
+
+            // Show/hide forms
+            document.getElementById('cardPaymentForm').classList.toggle('active', method !== 'paypal');
+            document.getElementById('paypalForm').classList.toggle('active', method === 'paypal');
+
+            // Update button text
+            document.getElementById('paymentBtnText').textContent = 
+                method === 'paypal' ? 'Continuer avec PayPal' : 'Payer 5.00 €';
+        }
+
+        // Card number formatting
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/g, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            e.target.value = formatted;
+
+            // Update card icon
+            const icon = document.getElementById('cardTypeIcon');
+            if (value.startsWith('4')) {
+                icon.className = 'fab fa-cc-visa';
+                icon.style.color = '#1a1f71';
+            } else if (value.startsWith('5')) {
+                icon.className = 'fab fa-cc-mastercard';
+                icon.style.color = '#eb001b';
+            } else {
+                icon.className = 'fas fa-credit-card';
+                icon.style.color = '#9ca3af';
+            }
+        });
+
+        // Expiry date formatting
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        // CVV validation
+        document.getElementById('cardCVV').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        // ============ PROCESS PAYMENT ============
+        function processPayment() {
+            const btn = document.querySelector('#step2 .btn-primary');
+            const spinner = document.getElementById('paymentSpinner');
+            const btnText = document.getElementById('paymentBtnText');
+
+            // Validation for card payments
+            if (selectedPaymentMethod !== 'paypal') {
+                const cardName = document.getElementById('cardName').value.trim();
+                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                const cardExpiry = document.getElementById('cardExpiry').value;
+                const cardCVV = document.getElementById('cardCVV').value;
+
+                if (!cardName || cardNumber.length < 16 || cardExpiry.length < 5 || cardCVV.length < 3) {
+                    alert('Veuillez remplir tous les champs de la carte correctement');
+                    return;
+                }
+            } else {
+                const paypalEmail = document.getElementById('paypalEmail').value.trim();
+                if (!paypalEmail) {
+                    alert('Veuillez entrer votre email PayPal');
+                    return;
+                }
+            }
+
+            // Show loading
+            btn.disabled = true;
+            spinner.classList.add('show');
+            btnText.textContent = 'Traitement...';
+
+            // Simulate payment processing
+            setTimeout(() => {
+                // Generate reservation code
+                const code = 'RES-' + Date.now().toString().slice(-6);
+                document.getElementById('reservationCode').textContent = code;
+                document.getElementById('confirmEmail').textContent = reservationData.email;
+
+                // Save to localStorage
+                const reservation = {
+                    id: code,
+                    type: 'restaurant',
+                    restaurant: selectedRestaurant.name,
+                    city: selectedRestaurant.city,
+                    date: reservationData.date,
+                    time: reservationData.time,
+                    guests: reservationData.guests,
+                    name: reservationData.name,
+                    phone: reservationData.phone,
+                    email: reservationData.email,
+                    notes: reservationData.notes,
+                    paymentMethod: selectedPaymentMethod,
+                    amount: '5.00 €',
+                    status: 'confirmée',
+                    createdAt: new Date().toISOString()
+                };
+
+                let reservations = JSON.parse(localStorage.getItem('morocation_reservations')) || [];
+                reservations.push(reservation);
+                localStorage.setItem('morocation_reservations', JSON.stringify(reservations));
+
+                // Send email (in real app, this would be server-side)
+                sendConfirmationEmail(reservation);
+
+                // Show success
+                currentStep = 3;
+                updateStepDisplay();
+                document.getElementById('step3').classList.add('show');
+
+                // Reset button
+                btn.disabled = false;
+                spinner.classList.remove('show');
+                btnText.textContent = 'Payer 5.00 €';
+
+            }, 2000);
+        }
+
+        // ============ EMAIL CONFIRMATION ============
+        function sendConfirmationEmail(reservation) {
+            // In a real application, this would be sent server-side
+            // For demo, we log it and show a notification
+            console.log('Email de confirmation envoyé à:', reservation.email);
+            console.log('Détails:', reservation);
+
+            // Store email sent status
+            localStorage.setItem('morocation_last_email', JSON.stringify({
+                to: reservation.email,
+                subject: 'Confirmation de réservation - MoroCation',
+                sentAt: new Date().toISOString()
+            }));
+        }
+
+        // ============ CLOSE MODAL ON OUTSIDE CLICK ============
+        document.getElementById('reservationModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ============ INIT ============
+        renderRestaurants();
+    </script>
+</body>
+</html>

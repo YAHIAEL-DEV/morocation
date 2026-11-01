@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscriptions - MoroCation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-green {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-red {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-blue {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #1e3a5f;
+            color: white;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .edit-btn {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Liste des Inscriptions</h1>
+        
+        <button class="btn btn-green" onclick="location.href='3Register.html'">+ Nouvelle Inscription</button>
+        <button class="btn btn-blue" onclick="exportCSV()">📥 Exporter</button>
+        
+        <table id="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('morocation_users')) || [];
+            const tbody = document.getElementById('tbody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">Aucune inscription</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = users.map((u, i) => `
+                <tr>
+                    <td>${u.firstname} ${u.lastname}</td>
+                    <td>${u.email}</td>
+                    <td>${u.phone}</td>
+                    <td>${new Date(u.createdAt).toLocaleDateString('fr-FR')}</td>
+                    <td class="actions">
+                        <button class="edit-btn" onclick="editUser(${i})">Modifier</button>
+                        <button class="delete-btn" onclick="deleteUser(${i})">Supprimer</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function deleteUser(index) {
+            if (!confirm('Supprimer cette inscription ?')) return;
+            
+            let users = JSON.parse(localStorage.getItem('morocation_users')) || [];
+            users.splice(index, 1);
+            localStorage.setItem('morocation_users', JSON.stringify(users));
+            loadUsers();
+        }
+        
+        function editUser(index) {
+            let users = JSON.parse(localStorage.getItem('morocation_users')) || [];
+            const u = users[index];
+            
+            const firstname = prompt('Prénom:', u.firstname);
+            if (!firstname) return;
+            
+            const lastname = prompt('Nom:', u.lastname);
+            if (!lastname) return;
+            
+            const email = prompt('Email:', u.email);
+            if (!email) return;
+            
+            const phone = prompt('Téléphone:', u.phone);
+            if (!phone) return;
+            
+            users[index] = { ...u, firstname, lastname, email, phone };
+            localStorage.setItem('morocation_users', JSON.stringify(users));
+            loadUsers();
+        }
+        
+        function exportCSV() {
+            const users = JSON.parse(localStorage.getItem('morocation_users')) || [];
+            let csv = 'Nom,Email,Téléphone,Date\\n';
+            
+            users.forEach(u => {
+                csv += `${u.firstname} ${u.lastname},${u.email},${u.phone},${new Date(u.createdAt).toLocaleDateString('fr-FR')}\\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'inscriptions.csv';
+            a.click();
+        }
+        
+        loadUsers();
+    </script>
+</body>
+</html>

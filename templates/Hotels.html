@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hôtels - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; padding-bottom: 80px; }
+        .app-header { padding: 16px 20px; background: white; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #f3f4f6; }
+        .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .back-btn { width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: all 0.3s; }
+        .back-btn:hover { background: #e5e7eb; }
+        .header-title { flex: 1; font-size: 20px; font-weight: 700; }
+        .header-icon { width: 40px; height: 40px; border-radius: 12px; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .search-bar { display: flex; align-items: center; gap: 12px; background: #f3f4f6; padding: 12px 16px; border-radius: 12px; }
+        .search-bar input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
+        .filters { padding: 16px 20px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid #e5e7eb; background: white; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.3s; }
+        .filter-chip.active { background: #10b981; color: white; border-color: #10b981; }
+        .filter-chip:hover:not(.active) { background: #f3f4f6; }
+        .hotels-grid { padding: 0 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .hotel-card { border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; }
+        .hotel-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .hotel-image { width: 100%; height: 160px; object-fit: cover; position: relative; }
+        .hotel-badge { position: absolute; top: 12px; left: 12px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; }
+        .badge-luxury { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .badge-boutique { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .badge-riad { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .badge-resort { background: linear-gradient(135deg, #10b981, #059669); }
+        .badge-budget { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        .hotel-favorite { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; color: #ef4444; transition: all 0.3s; }
+        .hotel-favorite:hover { transform: scale(1.1); }
+        .hotel-favorite.active { background: #ef4444; color: white; }
+        .hotel-info { padding: 14px; }
+        .hotel-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+        .hotel-location { font-size: 13px; color: #6b7280; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; }
+        .hotel-stars { display: flex; gap: 2px; margin-bottom: 8px; }
+        .hotel-stars i { color: #f59e0b; font-size: 12px; }
+        .hotel-stars i.empty { color: #e5e7eb; }
+        .hotel-rating { display: flex; align-items: center; gap: 6px; font-size: 13px; margin-bottom: 10px; }
+        .rating-score { background: #10b981; color: white; padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 12px; }
+        .rating-count { color: #6b7280; }
+        .hotel-amenities { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .amenity { font-size: 11px; color: #6b7280; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
+        .hotel-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #f3f4f6; }
+        .hotel-price { font-size: 12px; color: #6b7280; }
+        .hotel-price span { font-size: 18px; font-weight: 800; color: #10b981; }
+        .hotel-btn { padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .hotel-btn:hover { background: #059669; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; padding: 12px 0 20px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6b7280; text-decoration: none; font-size: 12px; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; grid-column: 1 / -1; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: #d1d5db; }
+        .image-container { position: relative; width: 100%; height: 160px; }
+        @media (min-width: 768px) { .hotels-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1024px) { .hotels-grid { grid-template-columns: repeat(4, 1fr); max-width: 1200px; margin: 0 auto; } }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="header-top">
+            <button class="back-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="header-title">Hôtels au Maroc</h1>
+            <div class="header-icon">
+                <i class="fas fa-hotel"></i>
+            </div>
+        </div>
+        <div class="search-bar">
+            <i class="fas fa-search" style="color: #6b7280;"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher un hôtel, ville..." oninput="filterHotels()">
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-chip active" onclick="filterByType('all', this)">Tout</button>
+        <button class="filter-chip" onclick="filterByType('luxury', this)">Luxe</button>
+        <button class="filter-chip" onclick="filterByType('boutique', this)">Boutique</button>
+        <button class="filter-chip" onclick="filterByType('riad', this)">Riads</button>
+        <button class="filter-chip" onclick="filterByType('resort', this)">Resorts</button>
+        <button class="filter-chip" onclick="filterByType('budget', this)">Économique</button>
+    </div>
+
+    <div class="hotels-grid" id="hotels-grid"></div>
+
+    <nav class="bottom-nav">
+        <a href="{{ url_for('main') }}" class="nav-item"><i class="fas fa-home"></i><span>Accueil</span></a>
+        <a href="{{ url_for('search') }}" class="nav-item"><i class="fas fa-search"></i><span>Explorer</span></a>
+        <a href="{{ url_for('reservations') }}" class="nav-item"><i class="far fa-calendar-alt"></i><span>Réservations</span></a>
+        <a href="{{ url_for('favorites') }}" class="nav-item"><i class="far fa-heart"></i><span>Favoris</span></a>
+        <a href="{{ url_for('profile') }}" class="nav-item"><i class="far fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <script>
+        const allHotels = [
+            { id: 'la-mamounia', name: 'La Mamounia', city: 'Marrakech', type: 'luxury', stars: 5, image: '/static/images/img_08585610.jpg', rating: 4.9, reviews: 850, price: 450, amenities: ['Spa', 'Piscine', 'Restaurant'] },
+            { id: 'royal-mansour', name: 'Royal Mansour', city: 'Marrakech', type: 'luxury', stars: 5, image: '/static/images/img_2fb77b29.jpg', rating: 5.0, reviews: 620, price: 1200, amenities: ['Spa', 'Piscine', 'Golf'] },
+            { id: 'riad-yasmine', name: 'Riad Yasmine', city: 'Marrakech', type: 'riad', stars: 4, image: '/static/images/img_68ecbae1.jpg', rating: 4.7, reviews: 430, price: 120, amenities: ['Piscine', 'Terrasse', 'Petit-déjeuner'] },
+            { id: 'riad-be', name: 'Riad BE', city: 'Marrakech', type: 'riad', stars: 3, image: '/static/images/img_ab14d42b.jpg', rating: 4.5, reviews: 280, price: 80, amenities: ['Terrasse', 'Petit-déjeuner'] },
+            { id: 'hotel-ibis-marrakech', name: 'Ibis Marrakech', city: 'Marrakech', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.0, reviews: 1200, price: 45, amenities: ['WiFi', 'Parking'] },
+            { id: 'selman-marrakech', name: 'Selman Marrakech', city: 'Marrakech', type: 'luxury', stars: 5, image: '/static/images/img_69e04fd7.jpg', rating: 4.8, reviews: 380, price: 350, amenities: ['Spa', 'Piscine', 'Équitation'] },
+            { id: 'four-seasons-casa', name: 'Four Seasons Casablanca', city: 'Casablanca', type: 'luxury', stars: 5, image: '/static/images/img_08585610.jpg', rating: 4.8, reviews: 720, price: 380, amenities: ['Spa', 'Piscine', 'Vue mer'] },
+            { id: 'hyatt-regency-casa', name: 'Hyatt Regency', city: 'Casablanca', type: 'luxury', stars: 5, image: '/static/images/img_2fb77b29.jpg', rating: 4.6, reviews: 540, price: 220, amenities: ['Piscine', 'Centre d\'affaires'] },
+            { id: 'hotel-volubilis', name: 'Hôtel Volubilis', city: 'Casablanca', type: 'boutique', stars: 4, image: '/static/images/img_61e9024b.jpg', rating: 4.3, reviews: 310, price: 95, amenities: ['Restaurant', 'Bar'] },
+            { id: 'ibis-casa-voyageurs', name: 'Ibis Casa Voyageurs', city: 'Casablanca', type: 'budget', stars: 3, image: '/static/images/img_ab14d42b.jpg', rating: 3.9, reviews: 890, price: 40, amenities: ['WiFi', 'Proche gare'] },
+            { id: 'villa-diyafa', name: 'Villa Diyafa', city: 'Rabat', type: 'luxury', stars: 5, image: '/static/images/img_69e04fd7.jpg', rating: 4.7, reviews: 290, price: 280, amenities: ['Jardin', 'Spa', 'Gastronomie'] },
+            { id: 'hotel-riad-skhirat', name: 'Riad Skhirat', city: 'Rabat', type: 'riad', stars: 4, image: '/static/images/img_68ecbae1.jpg', rating: 4.4, reviews: 180, price: 85, amenities: ['Piscine', 'Terrasse'] },
+            { id: 'ibis-rabat', name: 'Ibis Rabat', city: 'Rabat', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.1, reviews: 650, price: 50, amenities: ['WiFi', 'Parking'] },
+            { id: 'palais-faraj', name: 'Palais Faraj', city: 'Fès', type: 'luxury', stars: 5, image: '/static/images/img_2fb77b29.jpg', rating: 4.8, reviews: 410, price: 320, amenities: ['Spa', 'Piscine', 'Vue médina'] },
+            { id: 'riad-rcif', name: 'Riad Rcif', city: 'Fès', type: 'riad', stars: 4, image: '/static/images/img_ab14d42b.jpg', rating: 4.6, reviews: 340, price: 110, amenities: ['Terrasse', 'Petit-déjeuner', 'Hamam'] },
+            { id: 'hotel-mounia', name: 'Hôtel Mounia', city: 'Fès', type: 'budget', stars: 3, image: '/static/images/img_08585610.jpg', rating: 4.0, reviews: 520, price: 55, amenities: ['Restaurant', 'WiFi'] },
+            { id: 'el-minzah', name: 'El Minzah', city: 'Tanger', type: 'luxury', stars: 5, image: '/static/images/img_69e04fd7.jpg', rating: 4.5, reviews: 380, price: 200, amenities: ['Spa', 'Piscine', 'Vue mer'] },
+            { id: 'dar-nour', name: 'Dar Nour', city: 'Tanger', type: 'boutique', stars: 4, image: '/static/images/img_68ecbae1.jpg', rating: 4.7, reviews: 260, price: 130, amenities: ['Terrasse', 'Vue mer', 'Petit-déjeuner'] },
+            { id: 'hotel-rembrandt', name: 'Hôtel Rembrandt', city: 'Tanger', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.2, reviews: 440, price: 60, amenities: ['Piscine', 'WiFi'] },
+            { id: 'atlantic-palace', name: 'Atlantic Palace', city: 'Agadir', type: 'resort', stars: 5, image: '/static/images/img_2fb77b29.jpg', rating: 4.6, reviews: 590, price: 250, amenities: ['Plage privée', 'Spa', 'Golf'] },
+            { id: 'royal-atlas', name: 'Royal Atlas', city: 'Agadir', type: 'resort', stars: 5, image: '/static/images/img_08585610.jpg', rating: 4.5, reviews: 480, price: 180, amenities: ['Piscine', 'Plage', 'Animation'] },
+            { id: 'hotel-timoulay', name: 'Timoulay', city: 'Agadir', type: 'boutique', stars: 4, image: '/static/images/img_ab14d42b.jpg', rating: 4.4, reviews: 220, price: 100, amenities: ['Piscine', 'Jardin'] },
+            { id: 'appart-hotel-tagadirt', name: 'Tagadirt', city: 'Agadir', type: 'budget', stars: 2, image: '/static/images/img_61e9024b.jpg', rating: 3.8, reviews: 760, price: 35, amenities: ['Kitchenette', 'Piscine'] },
+            { id: 'heure-bleue', name: 'L\'Heure Bleue', city: 'Essaouira', type: 'luxury', stars: 5, image: '/static/images/img_69e04fd7.jpg', rating: 4.9, reviews: 340, price: 400, amenities: ['Spa', 'Rooftop', 'Piscine'] },
+            { id: 'riad-al-madina', name: 'Riad Al Madina', city: 'Essaouira', type: 'riad', stars: 4, image: '/static/images/img_68ecbae1.jpg', rating: 4.5, reviews: 290, price: 95, amenities: ['Terrasse', 'Petit-déjeuner'] },
+            { id: 'hotel-des-iles', name: 'Hôtel des Iles', city: 'Essaouira', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.1, reviews: 410, price: 65, amenities: ['Vue mer', 'Restaurant'] },
+            { id: 'lina-ryad', name: 'Lina Ryad & Spa', city: 'Chefchaouen', type: 'riad', stars: 4, image: '/static/images/img_ab14d42b.jpg', rating: 4.6, reviews: 380, price: 90, amenities: ['Spa', 'Terrasse', 'Vue médina'] },
+            { id: 'dar-zambak', name: 'Dar Zambak', city: 'Chefchaouen', type: 'boutique', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.4, reviews: 210, price: 55, amenities: ['Terrasse', 'Petit-déjeuner'] },
+            { id: 'hotel-parador', name: 'Parador', city: 'Chefchaouen', type: 'budget', stars: 3, image: '/static/images/img_08585610.jpg', rating: 4.2, reviews: 180, price: 50, amenities: ['Vue montagne', 'Restaurant'] },
+            { id: 'berbere-palace', name: 'Berbère Palace', city: 'Ouarzazate', type: 'luxury', stars: 5, image: '/static/images/img_2fb77b29.jpg', rating: 4.4, reviews: 270, price: 190, amenities: ['Piscine', 'Jardin', 'Cinéma'] },
+            { id: 'dar-chamaa', name: 'Dar Chamaa', city: 'Ouarzazate', type: 'boutique', stars: 4, image: '/static/images/img_68ecbae1.jpg', rating: 4.3, reviews: 150, price: 75, amenities: ['Piscine', 'Terrasse'] },
+            { id: 'michlifen', name: 'Michlifen Resort', city: 'Ifrane', type: 'resort', stars: 5, image: '/static/images/img_69e04fd7.jpg', rating: 4.7, reviews: 320, price: 220, amenities: ['Ski', 'Spa', 'Piscine'] },
+            { id: 'hotel-perce-neige', name: 'Perce-Neige', city: 'Ifrane', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 4.1, reviews: 200, price: 70, amenities: ['Cheminée', 'Petit-déjeuner'] },
+            { id: 'erg-chebbi-luxury', name: 'Erg Chebbi Luxury Camp', city: 'Merzouga', type: 'luxury', stars: 5, image: '/static/images/img_ab14d42b.jpg', rating: 4.8, reviews: 450, price: 300, amenities: ['Tente luxe', 'Désert', 'Activités'] },
+            { id: 'camp-bivouac', name: 'Bivouac La Belle Étoile', city: 'Merzouga', type: 'budget', stars: 2, image: '/static/images/img_61e9024b.jpg', rating: 4.5, reviews: 380, price: 50, amenities: ['Tente', 'Feu de camp'] },
+            { id: 'saidia-beach', name: 'Saïdia Beach Resort', city: 'Saïdia', type: 'resort', stars: 4, image: '/static/images/img_08585610.jpg', rating: 4.3, reviews: 280, price: 140, amenities: ['Plage', 'Piscine', 'Animation'] },
+            { id: 'hotel-marsa', name: 'Marsa Beni Ansar', city: 'Saïdia', type: 'budget', stars: 3, image: '/static/images/img_61e9024b.jpg', rating: 3.9, reviews: 160, price: 45, amenities: ['Vue mer', 'Restaurant'] }
+        ];
+
+        let currentFilter = 'all';
+        let searchTerm = '';
+        let favorites = JSON.parse(localStorage.getItem('morocation_favorites')) || [];
+
+        function renderHotels() {
+            const grid = document.getElementById('hotels-grid');
+            let filtered = allHotels;
+            if (currentFilter !== 'all') filtered = filtered.filter(h => h.type === currentFilter);
+            if (searchTerm) filtered = filtered.filter(h => h.name.toLowerCase().includes(searchTerm.toLowerCase()) || h.city.toLowerCase().includes(searchTerm.toLowerCase()));
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-state"><i class="fas fa-search"></i><h3>Aucun hôtel trouvé</h3><p>Essayez une autre recherche</p></div>`;
+                return;
+            }
+            grid.innerHTML = filtered.map(hotel => `
+                <div class="hotel-card" onclick="goToReservation('${hotel.id}')">
+                    <div class="image-container">
+                        <img src="${hotel.image}" class="hotel-image" alt="${hotel.name}">
+                        <span class="hotel-badge badge-${hotel.type}">${getTypeName(hotel.type)}</span>
+                        <button class="hotel-favorite ${favorites.includes(hotel.id) ? 'active' : ''}" onclick="toggleFavorite(event, '${hotel.id}')">
+                            <i class="${favorites.includes(hotel.id) ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="hotel-info">
+                        <h3 class="hotel-name">${hotel.name}</h3>
+                        <p class="hotel-location"><i class="fas fa-map-marker-alt"></i> ${hotel.city}</p>
+                        <div class="hotel-stars">${renderStars(hotel.stars)}</div>
+                        <div class="hotel-rating"><span class="rating-score">${hotel.rating}</span><span class="rating-count">(${hotel.reviews} avis)</span></div>
+                        <div class="hotel-amenities">${hotel.amenities.map(a => `<span class="amenity">${a}</span>`).join('')}</div>
+                        <div class="hotel-footer">
+                            <div class="hotel-price">À partir de <span>${hotel.price}€</span>/nuit</div>
+                            <button class="hotel-btn">Réserver</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderStars(count) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) html += `<i class="fas fa-star ${i <= count ? '' : 'empty'}"></i>`;
+            return html;
+        }
+
+        function getTypeName(type) {
+            const names = { 'luxury': 'Luxe', 'boutique': 'Boutique', 'riad': 'Riad', 'resort': 'Resort', 'budget': 'Économique' };
+            return names[type] || type;
+        }
+
+        function toggleFavorite(event, id) {
+            event.stopPropagation();
+            const index = favorites.indexOf(id);
+            if (index > -1) favorites.splice(index, 1); else favorites.push(id);
+            localStorage.setItem('morocation_favorites', JSON.stringify(favorites));
+            renderHotels();
+        }
+
+        function filterByType(type, element) {
+            document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            currentFilter = type;
+            renderHotels();
+        }
+
+        function filterHotels() {
+            searchTerm = document.getElementById('searchInput').value.trim();
+            renderHotels();
+        }
+
+        // ===== NEW: Go to reservation page with hotel data =====
+        function goToReservation(hotelId) {
+            const hotel = allHotels.find(h => h.id === hotelId);
+            if (!hotel) return;
+            
+            // Save hotel data to localStorage for reservation page
+            localStorage.setItem('morocation_selected_hotel', JSON.stringify(hotel));
+            
+            // Redirect to reservation page
+            window.location.href = "{{ url_for('reservations') }}";
+        }
+
+        renderHotels();
+    </script>
+</body>
+</html>

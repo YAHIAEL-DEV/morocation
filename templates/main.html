@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding-bottom: 80px; }
+        .app-header { padding: 16px 20px; background: white; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #f3f4f6; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .brand { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 700; color: #10b981; }
+        .user-menu { display: flex; align-items: center; gap: 12px; }
+        .user-menu span { font-size: 14px; color: #374151; font-weight: 500; }
+        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; text-decoration: none; }
+        .search-bar { display: flex; align-items: center; gap: 12px; background: #f3f4f6; padding: 12px 16px; border-radius: 12px; cursor: pointer; }
+        .search-bar input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
+        .categories { padding: 20px; display: flex; gap: 16px; overflow-x: auto; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .category-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; cursor: pointer; }
+        .category-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #f3f4f6; transition: all 0.3s; }
+        .category-item.active .category-icon { background: #10b981; color: white; }
+        .category-name { font-size: 12px; font-weight: 500; color: #6b7280; }
+        .category-item.active .category-name { color: #10b981; font-weight: 600; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 16px; }
+        .section-title { font-size: 20px; font-weight: 700; }
+        .see-all { color: #10b981; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .destinations-grid { padding: 0 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+        .destination-card { border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; transition: all 0.3s; }
+        .destination-card:hover { transform: translateY(-4px); box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .destination-image { width: 100%; height: 140px; object-fit: cover; }
+        .destination-info { padding: 12px; }
+        .destination-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .destination-rating { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #f59e0b; }
+        .destination-rating span { color: #6b7280; }
+        .featured-section { padding: 0 20px; margin-bottom: 24px; }
+        .featured-card { position: relative; border-radius: 16px; overflow: hidden; height: 200px; cursor: pointer; }
+        .featured-image { width: 100%; height: 100%; object-fit: cover; }
+        .featured-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: white; }
+        .featured-name { font-size: 20px; font-weight: 700; }
+        .featured-location { font-size: 14px; opacity: 0.9; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; padding: 12px 0 20px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6b7280; text-decoration: none; font-size: 12px; transition: all 0.3s; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+
+        /* ===== CHATBOT STYLES ===== */
+        .chatbot-container {
+            position: fixed;
+            bottom: 90px;
+            right: 16px;
+            z-index: 300;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        /* Floating button */
+        .chatbot-toggle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .chatbot-toggle:hover { transform: scale(1.1); }
+        .chatbot-toggle:active { transform: scale(0.95); }
+        
+        .chatbot-toggle .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+        .chatbot-toggle .badge.show { display: block; }
+        
+        /* Chat window */
+        .chatbot-window {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            width: 360px;
+            max-width: calc(100vw - 32px);
+            height: 500px;
+            max-height: calc(100vh - 180px);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: chatSlideUp 0.3s ease;
+        }
+        .chatbot-window.open { display: flex; }
+        
+        @keyframes chatSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Header */
+        .chatbot-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+        .chatbot-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .chatbot-info { flex: 1; }
+        .chatbot-name { font-weight: 700; font-size: 16px; }
+        .chatbot-status { font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 6px; }
+        .chatbot-status::before {
+            content: '';
+            width: 8px; height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .chatbot-close {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chatbot-close:hover { background: rgba(255,255,255,0.3); }
+        
+        /* Messages area */
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f8fafc;
+        }
+        .chatbot-messages::-webkit-scrollbar { width: 6px; }
+        .chatbot-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: messageSlide 0.3s ease;
+        }
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.bot {
+            align-self: flex-start;
+            background: white;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: white;
+            padding: 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .typing-indicator.show { display: flex; gap: 4px; }
+        .typing-dot {
+            width: 8px; height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+        
+        /* Input area */
+        .chatbot-input-area {
+            padding: 12px 16px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chatbot-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .chatbot-input:focus { border-color: #10b981; }
+        .chatbot-send {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .chatbot-send:hover { transform: scale(1.1); }
+        .chatbot-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        /* Quick replies */
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            padding: 8px 16px;
+            overflow-x: auto;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            scrollbar-width: none;
+        }
+        .quick-replies::-webkit-scrollbar { display: none; }
+        .quick-reply {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            color: #374151;
+        }
+        .quick-reply:hover {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="header-top">
+            <div class="brand"><span>MC</span><span>MoroCation</span></div>
+            <div class="user-menu">
+                <span>👤 {{ user.user_nom }}</span>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Déconnexion</a>
+            </div>
+        </div>
+        <a href="{{ url_for('search') }}" class="search-bar" style="text-decoration:none; color:inherit;">
+            <i class="fas fa-search" style="color:#6b7280"></i>
+            <input type="text" placeholder="Rechercher..." readonly style="pointer-events:none;">
+            <i class="fas fa-sliders-h" style="color:#6b7280"></i>
+        </a>
+    </div>
+
+    <div class="categories">
+        <a href="{{ url_for('hotels') }}" class="category-item active" style="text-decoration:none;">
+            <div class="category-icon">🏖️</div>
+            <span class="category-name">Plages</span>
+        </a>
+        <a href="{{ url_for('hotels') }}" class="category-item" style="text-decoration:none;">
+            <div class="category-icon">🏛️</div>
+            <span class="category-name">Monuments</span>
+        </a>
+        <a href="{{ url_for('restaurants') }}" class="category-item" style="text-decoration:none;">
+            <div class="category-icon">🍴</div>
+            <span class="category-name">Restaurants</span>
+        </a>
+        <a href="{{ url_for('hotels') }}" class="category-item" style="text-decoration:none;">
+            <div class="category-icon">🏨</div>
+            <span class="category-name">Hôtels</span>
+        </a>
+        <a href="{{ url_for('hotels') }}" class="category-item" style="text-decoration:none;">
+            <div class="category-icon">🎯</div>
+            <span class="category-name">Activités</span>
+        </a>
+    </div>
+
+    <div class="section-header">
+        <h2 class="section-title">Destinations populaires</h2>
+        <a href="{{ url_for('voir_tout') }}" class="see-all">Voir tout</a>
+    </div>
+    <div class="destinations-grid" id="destinations-grid"></div>
+
+    <div class="featured-section">
+        <div class="section-header"><h2 class="section-title">En vedette</h2></div>
+        <a href="{{ url_for('destination', name='Casablanca') }}" style="text-decoration:none; display:block;">
+            <div class="featured-card">
+                <img src="/static/images/img_c435ef6a.jpg" class="featured-image" alt="Casablanca">
+                <div class="featured-overlay">
+                    <h3 class="featured-name">Casablanca</h3>
+                    <p class="featured-location">La capitale économique du Maroc</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="{{ url_for('main') }}" class="nav-item active"><i class="fas fa-home"></i><span>Accueil</span></a>
+        <a href="{{ url_for('search') }}" class="nav-item"><i class="fas fa-search"></i><span>Explorer</span></a>
+        <a href="{{ url_for('reservations') }}" class="nav-item"><i class="far fa-calendar-alt"></i><span>Réservations</span></a>
+        <a href="{{ url_for('favorites') }}" class="nav-item"><i class="far fa-heart"></i><span>Favoris</span></a>
+        <a href="{{ url_for('profile') }}" class="nav-item"><i class="far fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <!-- ===== CHATBOT ===== -->
+    <div class="chatbot-container">
+        <button class="chatbot-toggle" id="chatToggle" onclick="toggleChat()">
+            <i class="fas fa-robot" id="chatIcon"></i>
+            <span class="badge" id="chatBadge"></span>
+        </button>
+        
+        <div class="chatbot-window" id="chatWindow">
+            <div class="chatbot-header">
+                <div class="chatbot-avatar">🤖</div>
+                <div class="chatbot-info">
+                    <div class="chatbot-name">MoroGuide</div>
+                    <div class="chatbot-status">En ligne</div>
+                </div>
+                <button class="chatbot-close" onclick="toggleChat()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatMessages">
+                <div class="message bot">
+                    <div>Salam ! Je suis MoroGuide, votre assistant touristique au Maroc 🇲🇦</div>
+                    <div class="message-time">Maintenant</div>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            
+            <div class="quick-replies">
+                <button class="quick-reply" onclick="sendQuickReply('Que faire à Marrakech ?')">Marrakech</button>
+                <button class="quick-reply" onclick="sendQuickReply('Meilleurs riads à Fès')">Riad Fès</button>
+                <button class="quick-reply" onclick="sendQuickReply('Plages Agadir')">Plages Agadir</button>
+                <button class="quick-reply" onclick="sendQuickReply('Gastronomie marocaine')">Gastronomie</button>
+            </div>
+            
+            <div class="chatbot-input-area">
+                <input type="text" class="chatbot-input" id="chatInput" 
+                       placeholder="Posez votre question..." 
+                       onkeypress="handleKeyPress(event)">
+                <button class="chatbot-send" id="sendBtn" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const destinations = [
+            { name: 'Marrakech', image: '/static/images/img_16c3a22b.jpg', rating: 4.8, reviews: 320 },
+            { name: 'Chefchaouen', image: '/static/images/img_1c21389b.jpg', rating: 4.7, reviews: 280 },
+            { name: 'Agadir', image: '/static/images/img_262d1233.jpg', rating: 4.7, reviews: 250 },
+            { name: 'Fès', image: '/static/images/img_e7b38efb.jpg', rating: 4.6, reviews: 210 },
+            { name: 'Tanger', image: '/static/images/img_7ea0e4ee.jpg', rating: 4.5, reviews: 190 },
+            { name: 'Essaouira', image: '/static/images/img_455a0555.jpg', rating: 4.6, reviews: 175 }
+        ];
+        function renderDestinations() {
+            const grid = document.getElementById('destinations-grid');
+            grid.innerHTML = destinations.map(dest => `
+                <a href="/destination/${dest.name}" style="text-decoration:none; color:inherit;">
+                    <div class="destination-card">
+                        <img src="${dest.image}" class="destination-image" alt="${dest.name}">
+                        <div class="destination-info">
+                            <h3 class="destination-name">${dest.name}</h3>
+                            <div class="destination-rating">
+                                <i class="fas fa-star"></i>
+                                <span>${dest.rating}</span>
+                                <span>(${dest.reviews} avis)</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            `).join('');
+        }
+        renderDestinations();
+
+        // ===== CHATBOT LOGIC =====
+        const chatWindow = document.getElementById('chatWindow');
+        const chatToggle = document.getElementById('chatToggle');
+        const chatIcon = document.getElementById('chatIcon');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Knowledge base dial tourisme au Maroc
+        const knowledgeBase = {
+            'marrakech': `Marrakech 🇲🇦 est une ville impériale incontournable ! Voici mes recommandations :
+
+🏛️ **À visiter :**
+- Jardin Majorelle (Yves Saint Laurent)
+- Place Jemaa el-Fna (le soir c'est magique !)
+- Palais Bahia & Palais El Badi
+- Médina & souks
+
+🍴 **À manger :**
+- Tagine au poulet aux olives
+- Pastilla (pigeon ou poulet)
+- Thé à la menthe sur une terrasse
+
+🏨 **Riad recommandé :** Riad Yasmine, Riad BE
+
+💡 **Conseil :** Visitez la médina tôt le matin pour éviter la foule !`,
+
+            'fès': `Fès 🕌 est la capitale spirituelle du Maroc !
+
+🏛️ **À visiter :**
+- Médina de Fès el-Bali (UNESCO)
+- Al-Qarawiyyin (plus ancienne université au monde)
+- Tanneries Chouara (vue panoramique)
+- Bou Inania Madrasa
+
+🍴 **Spécialités :**
+- B'ssara (soupe de fèves)
+- Méchoui d'agneau
+- Cornes de gazelle
+
+💡 **Conseil :** Prenez un guide pour la médina, c'est un labyrinthe !`,
+
+            'agadir': `Agadir 🏖️ est la station balnéaire par excellence !
+
+🏖️ **Plages :**
+- Plage d'Agadir (10km de sable fin)
+- Taghazout (surf paradise !)
+- Paradise Valley (piscines naturelles)
+
+🏄 **Activités :**
+- Surf & kitesurf
+- Randonnée dans l'Anti-Atlas
+- Souk El Had (marché traditionnel)
+
+🍴 **À manger :**
+- Poisson grillé frais
+- Tajine de poisson
+- Jus d'orange pressé
+
+💡 **Conseil :** Taghazout est parfaite pour les surfeurs débutants !`,
+
+            'chefchaouen': `Chefchaouen 💙 la ville bleue du Rif !
+
+🏛️ **À visiter :**
+- Médina bleue (photographiez tout !)
+- Ras El Ma (source d'eau)
+- Spanish Mosque (vue panoramique)
+- Cascades d'Akchour (à 30min)
+
+🍴 **Spécialités :**
+- Fromage de chèvre local
+- Tagine aux légumes du Rif
+- Miel de montagne
+
+💡 **Conseil :** Levez-vous tôt pour des photos sans touristes !`,
+
+            'tanger': `Tanger 🌊 où la Méditerranée rencontre l'Atlantique !
+
+🏛️ **À visiter :**
+- Kasbah & médina
+- Grottes d'Hercule
+- Cap Spartel (phare)
+- Plage Achakkar
+
+🍴 **Spécialités :**
+- Calamars grillés
+- Tajine de poisson
+- Thé aux fleurs de jasmin
+
+💡 **Conseil :** Faites une excursion à Tétouan (30min) !`,
+
+            'essaouira': `Essaouira 🌊 ville côtière charmante !
+
+🏛️ **À visiter :**
+- Médina fortifiée (UNESCO)
+- Port de pêche (achat de poisson frais)
+- Skala de la Ville (vue sur l'océan)
+- Île de Mogador
+
+🍴 **Spécialités :**
+- Sardines grillées
+- Tajine de fruits de mer
+- Gâteau à la noix de coco
+
+💡 **Conseil :** Parfait pour une escapade depuis Marrakech (2h30) !`,
+
+            'riad': `Voici les meilleurs riads au Maroc 🏨 :
+
+**Marrakech :**
+- Riad Yasmine (piscine Instagrammable)
+- Riad BE (luxueux)
+- Riad Kniza (traditionnel)
+
+**Fès :**
+- Riad Fès (palace)
+- Riad Laaroussa (charmant)
+
+**Chefchaouen :**
+- Lina Ryad & Spa (vue sur la médina)
+- Dar Jasmine (intime)
+
+💰 **Prix moyen :** 60-200€/nuit selon la saison`,
+
+            'plage': `Les plus belles plages du Maroc 🏖️ :
+
+**Agadir :** Sable fin, familial
+**Taghazout :** Surf, ambiance jeune
+**Essaouira :** Ventée, kitesurf
+**Asilah :** Calme, artistique
+**Saidia :** Méditerranée, eau turquoise
+**Legzira :** Arches naturelles (Sidi Ifni)
+
+🌡️ **Meilleure saison :** Mai-Octobre`,
+
+            'gastronomie': `La cuisine marocaine 🇲🇦 est classée au patrimoine UNESCO !
+
+**Plats incontournables :**
+- Tagine (poulet, agneau, légumes)
+- Couscous (vendredi traditionnellement)
+- Pastilla (sucré-salé)
+- Harira (soupe ramadan)
+- Méchoui (agneau rôti)
+
+**Desserts :**
+- Cornes de gazelle
+- Chebakia
+- M'hanncha
+
+**Boissons :**
+- Thé à la menthe (le "whisky marocain")
+- Café noir (fort !)
+- Jus d'orange pressé
+
+🍴 **Conseil :** Mangez dans les petits restaurants locaux, c'est meilleur et moins cher !`,
+
+            'default': `Je suis désolé, je n'ai pas bien compris votre question 😅
+
+Essayez de me demander sur :
+• Une ville (Marrakech, Fès, Agadir, Chefchaouen...)
+• Les plages
+• La gastronomie
+• Les riads/hôtels
+• Les activités
+
+Ou cliquez sur les suggestions rapides en bas ! 👇`
+        };
+
+        function toggleChat() {
+            chatWindow.classList.toggle('open');
+            const isOpen = chatWindow.classList.contains('open');
+            chatIcon.className = isOpen ? 'fas fa-times' : 'fas fa-robot';
+            if (isOpen) {
+                chatInput.focus();
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendQuickReply(text) {
+            chatInput.value = text;
+            sendMessage();
+        }
+
+        function getTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + 
+                   now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function addMessage(text, isUser = false) {
+            const msg = document.createElement('div');
+            msg.className = `message ${isUser ? 'user' : 'bot'}`;
+            msg.innerHTML = `<div>${text.replace(/\n/g, '<br>')}</div><div class="message-time">${getTime()}</div>`;
+            chatMessages.appendChild(msg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getBotResponse(userText) {
+            const text = userText.toLowerCase();
+            
+            // Check keywords
+            if (text.includes('marrakech')) return knowledgeBase['marrakech'];
+            if (text.includes('fès') || text.includes('fes')) return knowledgeBase['fès'];
+            if (text.includes('agadir')) return knowledgeBase['agadir'];
+            if (text.includes('chefchaouen')) return knowledgeBase['chefchaouen'];
+            if (text.includes('tanger')) return knowledgeBase['tanger'];
+            if (text.includes('essaouira')) return knowledgeBase['essaouira'];
+            if (text.includes('riad') || text.includes('hotel') || text.includes('hôtel')) return knowledgeBase['riad'];
+            if (text.includes('plage') || text.includes('beach')) return knowledgeBase['plage'];
+            if (text.includes('gastronomie') || text.includes('manger') || text.includes('nourriture') || text.includes('cuisine')) return knowledgeBase['gastronomie'];
+            
+            return knowledgeBase['default'];
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            
+            // Add user message
+            addMessage(text, true);
+            chatInput.value = '';
+            sendBtn.disabled = true;
+            
+            // Show typing
+            typingIndicator.classList.add('show');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate thinking delay
+            setTimeout(() => {
+                typingIndicator.classList.remove('show');
+                const response = getBotResponse(text);
+                addMessage(response);
+                sendBtn.disabled = false;
+            }, 1500 + Math.random() * 1000);
+        }
+    </script>
+</body>
+</html>

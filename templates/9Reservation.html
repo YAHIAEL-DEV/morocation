@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; padding-bottom: 40px; }
+        .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .nav-btn { width: 40px; height: 40px; border-radius: 50%; background: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .reservation-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .reservation-header { display: flex; gap: 16px; margin-bottom: 20px; }
+        .reservation-image { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+        .reservation-info h3 { font-size: 18px; margin-bottom: 4px; }
+        .reservation-location { color: #6b7280; font-size: 14px; margin-bottom: 8px; }
+        .reservation-rating { margin-bottom: 8px; }
+        .reservation-rating i { color: #f59e0b; }
+        .reservation-price { font-size: 20px; font-weight: 700; color: #10b981; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; outline: none; }
+        .form-group input:focus { border-color: #10b981; }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+        .guest-counter { display: flex; align-items: center; gap: 16px; justify-content: center; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; }
+        .counter-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #10b981; background: white; color: #10b981; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .counter-btn:hover { background: #10b981; color: white; }
+        .counter-value { font-size: 18px; font-weight: 700; min-width: 30px; text-align: center; }
+        .summary-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .summary-card h3 { margin-bottom: 16px; font-size: 16px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .summary-row span:first-child { color: #6b7280; }
+        .summary-row span:last-child { font-weight: 600; }
+        .summary-total { border-top: 1px solid #e5e7eb; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; font-weight: 700; }
+        .summary-total span:last-child { color: #10b981; font-size: 18px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-primary:hover { background: #059669; }
+        .success-message { display: none; text-align: center; padding: 40px 20px; }
+        .success-message.show { display: block; }
+        .success-icon { font-size: 64px; color: #10b981; margin-bottom: 20px; }
+        .success-message h2 { font-size: 24px; margin-bottom: 12px; }
+        .success-message p { color: #6b7280; margin-bottom: 24px; }
+        
+        /* ===== PAYMENT STYLES ===== */
+        .payment-section { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .payment-section h3 { margin-bottom: 16px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .payment-methods { display: flex; gap: 12px; margin-bottom: 16px; }
+        .payment-method {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .payment-method:hover { border-color: #10b981; }
+        .payment-method.selected { border-color: #10b981; background: #ecfdf5; }
+        .payment-method i { font-size: 32px; margin-bottom: 8px; }
+        .payment-method.visa i { color: #1a1f71; }
+        .payment-method.mastercard i { color: #eb001b; }
+        .payment-method span { font-size: 13px; font-weight: 600; display: block; }
+        
+        .card-form { display: none; }
+        .card-form.show { display: block; }
+        .card-row { display: flex; gap: 12px; }
+        .card-row .form-group { flex: 1; }
+        
+        .card-input-wrapper { position: relative; }
+        .card-input-wrapper i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; }
+        
+        .email-notice {
+            background: #dbeafe;
+            border: 1px solid #3b82f6;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #1e40af;
+        }
+        .email-notice i { font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div id="reservation-form">
+        <div class="app-header">
+            <button class="nav-btn" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2 style="flex:1;text-align:center">Réservation</h2>
+            <div style="width:40px"></div>
+        </div>
+
+        <div class="reservation-card">
+            <div class="reservation-header">
+                <img src="/static/images/img_50ad73a9.jpg" class="reservation-image" id="resv-image" alt="">
+                <div class="reservation-info">
+                    <h3 id="resv-name">Riad Dar Zaman</h3>
+                    <p class="reservation-location" id="resv-location">Marrakech</p>
+                    <div class="reservation-rating">
+                        <i class="fas fa-star"></i>
+                        <span style="font-weight:600">4.7</span>
+                    </div>
+                    <div class="reservation-price" id="resv-price">120€/nuit</div>
+                </div>
+            </div>
+        </div>
+
+        <form onsubmit="return handleReservation(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date d'arrivée</label>
+                    <input type="date" id="checkin" required onchange="calculateTotal()">
+                </div>
+                <div class="form-group">
+                    <label>Date de départ</label>
+                    <input type="date" id="checkout" required onchange="calculateTotal()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nombre de personnes</label>
+                <div class="guest-counter">
+                    <button type="button" class="counter-btn" onclick="updateGuests(-1)">−</button>
+                    <span class="counter-value" id="guest-count">2</span>
+                    <button type="button" class="counter-btn" onclick="updateGuests(1)">+</button>
+                </div>
+            </div>
+
+            <!-- ===== PAYMENT SECTION ===== -->
+            <div class="payment-section">
+                <h3><i class="fas fa-credit-card"></i> Paiement</h3>
+                
+                <div class="payment-methods">
+                    <div class="payment-method visa" onclick="selectPayment('visa', this)">
+                        <i class="fab fa-cc-visa"></i>
+                        <span>Visa</span>
+                    </div>
+                    <div class="payment-method mastercard" onclick="selectPayment('mastercard', this)">
+                        <i class="fab fa-cc-mastercard"></i>
+                        <span>Mastercard</span>
+                    </div>
+                </div>
+                
+                <div class="card-form" id="cardForm">
+                    <div class="form-group">
+                        <label>Numéro de carte</label>
+                        <div class="card-input-wrapper">
+                            <input type="text" class="form-input" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                    </div>
+                    <div class="card-row">
+                        <div class="form-group">
+                            <label>Date d'expiration</label>
+                            <input type="text" class="form-input" id="cardExpiry" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>CVV</label>
+                            <input type="text" class="form-input" id="cardCvv" placeholder="123" maxlength="3" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom sur la carte</label>
+                        <input type="text" class="form-input" id="cardName" placeholder="MOUAD EL AMRANI">
+                    </div>
+                </div>
+            </div>
+
+            <div class="email-notice">
+                <i class="fas fa-envelope"></i>
+                <span>Un email de confirmation sera envoyé à <strong>{{ user.user_email }}</strong></span>
+            </div>
+
+            <div class="summary-card">
+                <h3>Récapitulatif</h3>
+                <div class="summary-row">
+                    <span id="nights-label">2 nuits x 120€</span>
+                    <span id="nights-price">240€</span>
+                </div>
+                <div class="summary-row">
+                    <span>Taxes & frais</span>
+                    <span id="taxes">24€</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span id="total-price">264€</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-lock"></i> Confirmer et payer
+            </button>
+        </form>
+    </div>
+
+    <div class="success-message" id="success-message">
+        <div class="success-icon">✅</div>
+        <h2>Réservation confirmée !</h2>
+        <p>Votre séjour a été réservé avec succès.</p>
+        <p style="color: #10b981; font-weight: 600; margin-bottom: 8px;">
+            <i class="fas fa-envelope"></i> Un email de confirmation a été envoyé !
+        </p>
+        <a href="{{ url_for('main') }}" class="btn btn-primary">
+            Retour à l'accueil
+        </a>
+    </div>
+
+    <script>
+        const PRICE_PER_NIGHT = 120;
+        let guestCount = 2;
+        let nights = 2;
+        let selectedPayment = null;
+
+        // Load selected hotel from localStorage
+        function loadSelectedHotel() {
+            const hotelData = localStorage.getItem('morocation_selected_hotel');
+            if (hotelData) {
+                const hotel = JSON.parse(hotelData);
+                document.getElementById('resv-name').textContent = hotel.name;
+                document.getElementById('resv-location').textContent = hotel.city;
+                document.getElementById('resv-price').textContent = hotel.price + '€/nuit';
+                document.getElementById('resv-image').src = hotel.image;
+                // Update price calculation
+                window.PRICE_PER_NIGHT = hotel.price;
+            }
+        }
+        loadSelectedHotel();
+
+        function selectPayment(type, element) {
+            selectedPayment = type;
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('cardForm').classList.add('show');
+        }
+
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s/g, '').replace(/[^0-9]/g, '');
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) formatted += ' ';
+                formatted += value[i];
+            }
+            input.value = formatted;
+        }
+
+        function formatExpiry(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            input.value = value;
+        }
+
+        function updateGuests(change) {
+            guestCount += change;
+            if (guestCount < 1) guestCount = 1;
+            if (guestCount > 10) guestCount = 10;
+            document.getElementById('guest-count').textContent = guestCount;
+        }
+
+        function calculateTotal() {
+            const checkin = new Date(document.getElementById('checkin').value);
+            const checkout = new Date(document.getElementById('checkout').value);
+            const price = window.PRICE_PER_NIGHT || PRICE_PER_NIGHT;
+            
+            if (checkin && checkout && checkout > checkin) {
+                const diffTime = Math.abs(checkout - checkin);
+                nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const subtotal = nights * price;
+                const taxes = Math.round(subtotal * 0.1);
+                const total = subtotal + taxes;
+                
+                document.getElementById('nights-label').textContent = `${nights} nuit(s) x ${price}€`;
+                document.getElementById('nights-price').textContent = `${subtotal}€`;
+                document.getElementById('taxes').textContent = `${taxes}€`;
+                document.getElementById('total-price').textContent = `${total}€`;
+            }
+        }
+
+        function handleReservation(e) {
+            e.preventDefault();
+            
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            
+            if (!checkin || !checkout) {
+                alert('Veuillez sélectionner les dates');
+                return false;
+            }
+            
+            if (!selectedPayment) {
+                alert('Veuillez sélectionner un mode de paiement');
+                return false;
+            }
+            
+            // Validate card if payment selected
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCvv = document.getElementById('cardCvv').value;
+            const cardName = document.getElementById('cardName').value;
+            
+            if (cardNumber.length < 16 || cardExpiry.length < 5 || cardCvv.length < 3 || !cardName) {
+                alert('Veuillez remplir tous les champs de la carte');
+                return false;
+            }
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+            
+            // Prepare reservation data
+            const reservation = {
+                hotel_name: document.getElementById('resv-name').textContent,
+                hotel_location: document.getElementById('resv-location').textContent,
+                checkin,
+                checkout,
+                guests: guestCount,
+                nights,
+                total: document.getElementById('total-price').textContent,
+                payment_method: selectedPayment,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Save to localStorage
+            let reservations = JSON.parse(localStorage.getItem('morocation_reservations')) || [];
+            reservations.push(reservation);
+            localStorage.setItem('morocation_reservations', JSON.stringify(reservations));
+            
+            // Send to server for email
+            fetch('/api/reserve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reservation)
+            }).then(() => {
+                // Show success
+                document.getElementById('reservation-form').style.display = 'none';
+                document.getElementById('success-message').classList.add('show');
+            }).catch(() => {
+                // Show success even if email fails
+                document.getElementById('reservation-form').style.display = 'none';
+                document.getElementById('success-message').classList.add('show');
+            });
+            
+            return false;
+        }
+
+        // Set default dates
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 2);
+        
+        document.getElementById('checkin').valueAsDate = today;
+        document.getElementById('checkout').valueAsDate = tomorrow;
+        calculateTotal();
+    </script>
+</body>
+</html>

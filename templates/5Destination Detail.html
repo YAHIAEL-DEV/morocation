@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding-bottom: 100px; }
+        .detail-header { position: relative; height: 300px; }
+        .detail-image { width: 100%; height: 100%; object-fit: cover; }
+        .detail-nav {
+            position: absolute; top: 0; left: 0; right: 0;
+            padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(rgba(0,0,0,0.4), transparent);
+        }
+        .nav-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.9); border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px; text-decoration: none; color: inherit;
+        }
+        .detail-content {
+            padding: 24px 20px; margin-top: -40px;
+            background: white; border-radius: 24px 24px 0 0; position: relative;
+        }
+        .detail-title-row {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .detail-title { font-size: 24px; font-weight: 700; }
+        .detail-subtitle { color: #6b7280; font-size: 14px; margin-top: 4px; }
+        .detail-rating {
+            display: flex; align-items: center; gap: 4px;
+            background: #f3f4f6; padding: 6px 12px; border-radius: 20px;
+            font-size: 14px; font-weight: 600;
+        }
+        .detail-rating i { color: #f59e0b; }
+        .detail-section { margin-bottom: 24px; }
+        .detail-section h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+        .detail-section p { color: #6b7280; line-height: 1.6; font-size: 14px; }
+        .read-more { color: #10b981; font-weight: 600; cursor: pointer; }
+        .map-container {
+            height: 180px; background: #f3f4f6; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .map-container img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .map-pin {
+            position: absolute; color: #ef4444; font-size: 32px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .map-link {
+            position: absolute; bottom: 12px; right: 12px;
+            background: white; padding: 8px 16px; border-radius: 20px;
+            font-size: 12px; font-weight: 600; color: #10b981;
+        }
+        .review-card { background: #f3f4f6; padding: 16px; border-radius: 12px; margin-bottom: 12px; }
+        .review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .review-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .review-meta { flex: 1; }
+        .review-name { font-weight: 600; font-size: 14px; }
+        .review-date { font-size: 12px; color: #6b7280; }
+        .review-rating { color: #f59e0b; font-size: 12px; }
+        .review-text { font-size: 14px; color: #1f2937; line-height: 1.5; }
+        .bottom-action {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 16px 20px 24px; background: white;
+            border-top: 1px solid #f3f4f6; z-index: 100;
+        }
+        .btn {
+            width: 100%; padding: 16px; border-radius: 12px;
+            border: none; font-size: 16px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; text-decoration: none;
+        }
+        .btn-primary { background: #10b981; color: white; }
+    </style>
+</head>
+<body>
+    <div class="detail-header">
+        <img src="" class="detail-image" id="detail-image" alt="">
+        <div class="detail-nav">
+            <!-- BACK BUTTON - mlinké b main (b <a> mashi onclick) -->
+            <a href="{{ url_for('main') }}" class="nav-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <!-- FAVORITE BUTTON -->
+            <button class="nav-btn" onclick="toggleFavorite()">
+                <i class="far fa-heart" id="detail-heart"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="detail-content">
+        <div class="detail-title-row">
+            <div>
+                <h1 class="detail-title" id="detail-title">Marrakech</h1>
+                <p class="detail-subtitle" id="detail-subtitle">Ville au Maroc</p>
+            </div>
+            <div class="detail-rating">
+                <i class="fas fa-star"></i>
+                <span id="detail-rating">4.8</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>À propos</h3>
+            <p id="detail-description">Marrakech, ancienne ville impériale...</p>
+            <span class="read-more">Lire plus</span>
+        </div>
+
+        <div class="detail-section">
+            <h3>Carte</h3>
+            <div class="map-container">
+                <img src="/static/images/img_b8a16fa8.jpg" alt="Map">
+                <i class="fas fa-map-marker-alt map-pin"></i>
+                <span class="map-link">Voir sur la carte</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3>Avis des visiteurs</h3>
+            <div id="reviews-container"></div>
+        </div>
+    </div>
+
+    <!-- RESERVE BUTTON - mlinké b reservations (b <a> mashi onclick) -->
+    <div class="bottom-action">
+        <a href="{{ url_for('reservations') }}" class="btn btn-primary">
+            <span>Réserver</span>
+            <i class="fas fa-calendar-check"></i>
+        </a>
+    </div>
+
+    <script>
+        const destinations = {
+            marrakech: {
+                name: 'Marrakech', subtitle: 'Ville au Maroc',
+                image: '/static/images/img_f4bb4263.jpg',
+                rating: 4.8,
+                description: 'Marrakech, ancienne ville impériale, est un centre économique et culturel majeur. Elle est réputée pour ses jardins luxuriants, ses palais somptueux et ses souks animés.'
+            },
+            chefchaouen: {
+                name: 'Chefchaouen', subtitle: 'Ville bleue',
+                image: '/static/images/chefchaouen.jpg',
+                rating: 4.7,
+                description: 'Chefchaouen est une ville située dans les montagnes du Rif. Elle est célèbre pour ses bâtiments peints en bleu et blanc.'
+            },
+            casablanca: {
+                name: 'Casablanca', subtitle: 'Capitale économique',
+                image: '/static/images/casablanca.jpg',
+                rating: 4.6,
+                description: 'Casablanca est la plus grande ville du Maroc, connue pour son architecture moderne, ses plages et sa vie culturelle dynamique.'
+            }
+        };
+
+        const reviews = [
+            {
+                name: 'Youssef L.', avatar: '/static/images/img_b98f2a04.jpg',
+                date: '12 mai 2025', rating: 5, text: 'Superbe ville, je recommande vivement !'
+            },
+            {
+                name: 'Sara M.', avatar: '/static/images/img_e558843e.jpg',
+                date: '10 mai 2025', rating: 5, text: 'Très belle expérience, surtout la Corniche !'
+            }
+        ];
+
+        let favorites = JSON.parse(localStorage.getItem('morocation_favorites')) || [];
+
+        function loadDestination() {
+            const pathParts = window.location.pathname.split('/');
+            const name = pathParts[pathParts.length - 1] || 'marrakech';
+            const dest = destinations[name.toLowerCase()] || destinations.marrakech;
+            
+            document.getElementById('detail-image').src = dest.image;
+            document.getElementById('detail-title').textContent = dest.name;
+            document.getElementById('detail-subtitle').textContent = dest.subtitle;
+            document.getElementById('detail-rating').textContent = dest.rating;
+            document.getElementById('detail-description').textContent = dest.description;
+            
+            updateHeartIcon(name.toLowerCase());
+            renderReviews();
+        }
+
+        function updateHeartIcon(id) {
+            const heart = document.getElementById('detail-heart');
+            if (favorites.includes(id)) {
+                heart.classList.remove('far');
+                heart.classList.add('fas');
+            }
+        }
+
+        function toggleFavorite() {
+            const pathParts = window.location.pathname.split('/');
+            const id = pathParts[pathParts.length - 1] || 'marrakech';
+            
+            const index = favorites.indexOf(id);
+            const heart = document.getElementById('detail-heart');
+            
+            if (index > -1) {
+                favorites.splice(index, 1);
+                heart.classList.remove('fas');
+                heart.classList.add('far');
+                alert('Retiré des favoris');
+            } else {
+                favorites.push(id);
+                heart.classList.remove('far');
+                heart.classList.add('fas');
+                alert('Ajouté aux favoris');
+            }
+            
+            localStorage.setItem('morocation_favorites', JSON.stringify(favorites));
+        }
+
+        function renderReviews() {
+            const container = document.getElementById('reviews-container');
+            container.innerHTML = reviews.map(r => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="${r.avatar}" class="review-avatar" alt="${r.name}">
+                        <div class="review-meta">
+                            <div class="review-name">${r.name}</div>
+                            <div class="review-date">${r.date}</div>
+                        </div>
+                        <div class="review-rating">
+                            ${Array(r.rating).fill('<i class="fas fa-star"></i>').join('')}
+                        </div>
+                    </div>
+                    <p class="review-text">${r.text}</p>
+                </div>
+            `).join('');
+        }
+
+        loadDestination();
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; padding-bottom: 80px; }
+        .search-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .nav-btn { width: 40px; height: 40px; border-radius: 50%; background: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .search-input { flex: 1; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; outline: none; }
+        .search-input:focus { border-color: #10b981; }
+        .filter-btn { width: 48px; height: 48px; border-radius: 12px; border: 2px solid #e5e7eb; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+        .suggestions { margin-bottom: 24px; }
+        .suggestions h3 { font-size: 16px; margin-bottom: 12px; }
+        .suggestion-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .suggestion-tag { padding: 8px 16px; background: white; border-radius: 20px; font-size: 14px; cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.3s; }
+        .suggestion-tag:hover { background: #10b981; color: white; border-color: #10b981; }
+        .results { display: flex; flex-direction: column; gap: 12px; }
+        .result-item { display: flex; align-items: center; gap: 16px; padding: 12px; background: white; border-radius: 12px; cursor: pointer; transition: all 0.3s; text-decoration: none; color: inherit; }
+        .result-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .result-image { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
+        .result-info { flex: 1; }
+        .result-name { font-weight: 600; font-size: 15px; }
+        .result-desc { font-size: 13px; color: #6b7280; }
+        .result-arrow { color: #6b7280; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; padding: 12px 0 20px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6b7280; text-decoration: none; font-size: 12px; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="search-header">
+        <button class="nav-btn" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <input type="text" class="search-input" id="searchInput" placeholder="Rechercher..." oninput="handleSearch(this.value)">
+        <button class="filter-btn">
+            <i class="fas fa-sliders-h"></i>
+        </button>
+    </div>
+
+    <div class="suggestions" id="suggestions">
+        <h3>Suggestions récentes</h3>
+        <div class="suggestion-tags">
+            <button class="suggestion-tag" onclick="quickSearch('Marrakech')">Marrakech</button>
+            <button class="suggestion-tag" onclick="quickSearch('Fès')">Fès</button>
+            <button class="suggestion-tag" onclick="quickSearch('Agadir')">Agadir</button>
+            <button class="suggestion-tag" onclick="quickSearch('Tanger')">Tanger</button>
+        </div>
+    </div>
+
+    <div class="results" id="results"></div>
+
+    <!-- BOTTOM NAVIGATION - KHASS YKHDEM F GA3 LES PAGES -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('main') }}" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Accueil</span>
+        </a>
+        <a href="{{ url_for('search') }}" class="nav-item active">
+            <i class="fas fa-search"></i>
+            <span>Explorer</span>
+        </a>
+        <a href="{{ url_for('reservations') }}" class="nav-item">
+            <i class="far fa-calendar-alt"></i>
+            <span>Réservations</span>
+        </a>
+        <a href="{{ url_for('favorites') }}" class="nav-item">
+            <i class="far fa-heart"></i>
+            <span>Favoris</span>
+        </a>
+        <a href="{{ url_for('profile') }}" class="nav-item">
+            <i class="far fa-user"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+    <script>
+        const destinations = [
+            { id: 'marrakech', name: 'Marrakech', desc: 'Ville au Maroc', image: '/static/images/img_50ad73a9.jpg' },
+            { id: 'fes', name: 'Fès', desc: 'Ville impériale', image: '/static/images/fes.jpg' },
+            { id: 'agadir', name: 'Agadir', desc: 'Station balnéaire', image: '/static/images/img_12aa886d.jpg' },
+            { id: 'tanger', name: 'Tanger', desc: 'Ville du détroit', image: '/static/images/img_4831c142.jpg' }
+        ];
+
+        function handleSearch(query) {
+            const results = document.getElementById('results');
+            const suggestions = document.getElementById('suggestions');
+            
+            if (!query.trim()) {
+                results.innerHTML = '';
+                suggestions.style.display = 'block';
+                return;
+            }
+            
+            suggestions.style.display = 'none';
+            const filtered = destinations.filter(d => 
+                d.name.toLowerCase().includes(query.toLowerCase()) ||
+                d.desc.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            results.innerHTML = filtered.map(d => `
+                <a href="/destination/${d.id}" class="result-item">
+                    <img src="${d.image}" class="result-image" alt="${d.name}">
+                    <div class="result-info">
+                        <div class="result-name">${d.name}</div>
+                        <div class="result-desc">${d.desc}</div>
+                    </div>
+                    <i class="fas fa-chevron-right result-arrow"></i>
+                </a>
+            `).join('');
+        }
+
+        function quickSearch(term) {
+            document.getElementById('searchInput').value = term;
+            handleSearch(term);
+        }
+    </script>
+</body>
+</html>

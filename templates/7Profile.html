@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; padding-bottom: 80px; }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            padding: 40px 20px 60px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            border: none;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .settings-icon:hover { background: rgba(255,255,255,0.3); }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            margin-bottom: 16px;
+            background: #e5e7eb;
+            cursor: pointer;
+        }
+        .profile-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .profile-email { opacity: 0.9; font-size: 14px; }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: 700; }
+        .stat-label { font-size: 12px; opacity: 0.9; }
+        
+        .profile-content {
+            margin-top: -30px;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+        
+        /* ===== MODAL STYLES ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-overlay.show { display: flex; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            animation: slideUp 0.3s;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; color: #1f2937; }
+        .modal-close {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f3f4f6;
+            cursor: pointer;
+            font-size: 16px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover { background: #e5e7eb; }
+        
+        /* ===== FORM STYLES ===== */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .form-input:focus { border-color: #3b82f6; }
+        
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e5e7eb;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .file-btn {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .file-btn:hover { background: #e5e7eb; }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-submit:hover { opacity: 0.9; }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .alert.show { display: block; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        
+        .modal-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 8px;
+        }
+        .modal-option:hover { background: #f3f4f6; }
+        .modal-option-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .modal-option-icon.blue { background: #dbeafe; color: #3b82f6; }
+        .modal-option-icon.red { background: #fee2e2; color: #ef4444; }
+        .modal-option-icon.green { background: #d1fae5; color: #10b981; }
+        
+        .modal-option-text { flex: 1; }
+        .modal-option-title { font-weight: 600; font-size: 15px; color: #1f2937; }
+        .modal-option-desc { font-size: 13px; color: #6b7280; margin-top: 2px; }
+        .modal-option-arrow { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="profile-header">
+        <button class="settings-icon" onclick="openSettingsModal()">
+            <i class="fas fa-cog"></i>
+        </button>
+        
+        <img src="/static/images/img_ec8d3b37.jpg user.user_nom }}&background=random&color=fff&size=200" 
+             class="profile-avatar" 
+             id="currentAvatar"
+             alt="Profile">
+        
+        <h2 class="profile-name">{{ user.user_nom }}</h2>
+        <p class="profile-email">{{ user.user_email }}</p>
+        
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Voyages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">25</div>
+                <div class="stat-label">Favoris</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Avis</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content"></div>
+
+    <nav class="bottom-nav">
+        <a href="{{ url_for('main') }}" class="nav-item"><i class="fas fa-home"></i><span>Accueil</span></a>
+        <a href="{{ url_for('search') }}" class="nav-item"><i class="fas fa-search"></i><span>Explorer</span></a>
+        <a href="{{ url_for('reservations') }}" class="nav-item"><i class="far fa-calendar-alt"></i><span>Réservations</span></a>
+        <a href="{{ url_for('favorites') }}" class="nav-item"><i class="far fa-heart"></i><span>Favoris</span></a>
+        <a href="{{ url_for('profile') }}" class="nav-item active"><i class="far fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <!-- ===== MODAL PARAMETRES ===== -->
+    <div class="modal-overlay" id="settingsModal" onclick="closeSettingsModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Paramètres</h3>
+                <button class="modal-close" onclick="closeSettingsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-option" onclick="openEditProfileModal()">
+                <div class="modal-option-icon blue"><i class="fas fa-user-edit"></i></div>
+                <div class="modal-option-text">
+                    <div class="modal-option-title">Modifier le profil</div>
+                    <div class="modal-option-desc">Changer votre nom, photo...</div>
+                </div>
+                <i class="fas fa-chevron-right modal-option-arrow"></i>
+            </div>
+            
+            <div class="modal-option" onclick="openPasswordModal()">
+                <div class="modal-option-icon green"><i class="fas fa-lock"></i></div>
+                <div class="modal-option-text">
+                    <div class="modal-option-title">Mot de passe</div>
+                    <div class="modal-option-desc">Modifier votre mot de passe</div>
+                </div>
+                <i class="fas fa-chevron-right modal-option-arrow"></i>
+            </div>
+            
+            <div class="modal-option" onclick="logout()">
+                <div class="modal-option-icon red"><i class="fas fa-sign-out-alt"></i></div>
+                <div class="modal-option-text">
+                    <div class="modal-option-title">Déconnexion</div>
+                    <div class="modal-option-desc">Quitter votre compte</div>
+                </div>
+                <i class="fas fa-chevron-right modal-option-arrow"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL EDIT PROFILE ===== -->
+    <div class="modal-overlay" id="editProfileModal" onclick="closeEditProfileModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Modifier le profil</h3>
+                <button class="modal-close" onclick="closeEditProfileModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="alert alert-success" id="profileSuccess">Profil mis à jour avec succès !</div>
+            <div class="alert alert-error" id="profileError"></div>
+            
+            <form id="editProfileForm" onsubmit="return submitProfile(event)">
+                <div class="avatar-upload">
+                    <img src="/static/images/img_ec8d3b37.jpg user.user_nom }}&background=random&color=fff&size=200" 
+                         class="avatar-preview" id="avatarPreview" alt="Preview">
+                    <div class="file-input-wrapper">
+                        <div class="file-btn">
+                            <i class="fas fa-camera"></i>
+                            <span>Changer la photo</span>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nom complet</label>
+                    <input type="text" class="form-input" id="editNom" 
+                           value="{{ user.user_nom }}" required>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="profileSubmitBtn">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL CHANGE PASSWORD ===== -->
+    <div class="modal-overlay" id="passwordModal" onclick="closePasswordModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Changer le mot de passe</h3>
+                <button class="modal-close" onclick="closePasswordModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="alert alert-success" id="passwordSuccess">Mot de passe changé avec succès !</div>
+            <div class="alert alert-error" id="passwordError"></div>
+            
+            <form id="passwordForm" onsubmit="return submitPassword(event)">
+                <div class="form-group">
+                    <label>Mot de passe actuel</label>
+                    <input type="password" class="form-input" id="oldPassword" 
+                           placeholder="Votre mot de passe actuel" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nouveau mot de passe</label>
+                    <input type="password" class="form-input" id="newPassword" 
+                           placeholder="Min. 6 caractères" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label>Confirmer le nouveau mot de passe</label>
+                    <input type="password" class="form-input" id="confirmPassword" 
+                           placeholder="Retapez le nouveau mot de passe" required>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="passwordSubmitBtn">
+                    <i class="fas fa-key"></i> Changer le mot de passe
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== MODAL FUNCTIONS =====
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.add('show');
+        }
+        function closeSettingsModal(event) {
+            if (!event || event.target.id === 'settingsModal' || event.target.closest('.modal-close')) {
+                document.getElementById('settingsModal').classList.remove('show');
+            }
+        }
+        
+        function openEditProfileModal() {
+            closeSettingsModal();
+            document.getElementById('editProfileModal').classList.add('show');
+        }
+        function closeEditProfileModal(event) {
+            if (!event || event.target.id === 'editProfileModal' || event.target.closest('.modal-close')) {
+                document.getElementById('editProfileModal').classList.remove('show');
+                hideAlerts('profile');
+            }
+        }
+        
+        function openPasswordModal() {
+            closeSettingsModal();
+            document.getElementById('passwordModal').classList.add('show');
+        }
+        function closePasswordModal(event) {
+            if (!event || event.target.id === 'passwordModal' || event.target.closest('.modal-close')) {
+                document.getElementById('passwordModal').classList.remove('show');
+                hideAlerts('password');
+                document.getElementById('passwordForm').reset();
+            }
+        }
+        
+        function hideAlerts(type) {
+            document.getElementById(type + 'Success').classList.remove('show');
+            document.getElementById(type + 'Error').classList.remove('show');
+        }
+        
+        function showAlert(type, message, isError = false) {
+            const el = document.getElementById(type + (isError ? 'Error' : 'Success'));
+            el.textContent = message;
+            el.classList.add('show');
+            if (isError) document.getElementById(type + 'Success').classList.remove('show');
+            else document.getElementById(type + 'Error').classList.remove('show');
+        }
+        
+        // ===== AVATAR PREVIEW =====
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        // ===== SUBMIT PROFILE =====
+        async function submitProfile(e) {
+            e.preventDefault();
+            hideAlerts('profile');
+            
+            const nom = document.getElementById('editNom').value.trim();
+            const avatarInput = document.getElementById('avatarInput');
+            const btn = document.getElementById('profileSubmitBtn');
+            
+            if (!nom) {
+                showAlert('profile', 'Le nom est requis', true);
+                return false;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
+            
+            const formData = new FormData();
+            formData.append('nom', nom);
+            if (avatarInput.files[0]) {
+                formData.append('avatar', avatarInput.files[0]);
+            }
+            
+            try {
+                const response = await fetch('/api/update-profile', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('profile', 'Profil mis à jour avec succès !');
+                    // Update displayed name
+                    document.querySelector('.profile-name').textContent = nom;
+                    if (data.avatar_url) {
+                        document.getElementById('currentAvatar').src = data.avatar_url;
+                    }
+                    setTimeout(() => closeEditProfileModal(), 1500);
+                } else {
+                    showAlert('profile', data.message || 'Erreur', true);
+                }
+            } catch (err) {
+                showAlert('profile', 'Erreur de connexion', true);
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+            return false;
+        }
+        
+        // ===== SUBMIT PASSWORD =====
+        async function submitPassword(e) {
+            e.preventDefault();
+            hideAlerts('password');
+            
+            const oldPass = document.getElementById('oldPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const btn = document.getElementById('passwordSubmitBtn');
+            
+            if (newPass !== confirmPass) {
+                showAlert('password', 'Les mots de passe ne correspondent pas', true);
+                return false;
+            }
+            
+            if (newPass.length < 6) {
+                showAlert('password', 'Min. 6 caractères', true);
+                return false;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changement...';
+            
+            try {
+                const response = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        old_password: oldPass,
+                        new_password: newPass
+                    })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('password', 'Mot de passe changé avec succès !');
+                    document.getElementById('passwordForm').reset();
+                    setTimeout(() => closePasswordModal(), 1500);
+                } else {
+                    showAlert('password', data.message || 'Erreur', true);
+                }
+            } catch (err) {
+                showAlert('password', 'Erreur de connexion', true);
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-key"></i> Changer le mot de passe';
+            return false;
+        }
+        
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+    </script>
+</body>
+</html>

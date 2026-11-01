@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 80px;
+        }
+        
+        .app-header {
+            padding: 16px 20px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .favorites-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .favorite-card {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .favorite-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+        .favorite-heart {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #ef4444;
+            font-size: 14px;
+        }
+        .favorite-info {
+            padding: 12px;
+        }
+        .favorite-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .favorite-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #f59e0b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+            grid-column: 1 / -1;
+        }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #d1d5db;
+        }
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <button class="nav-btn" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <h2>Mes Favoris</h2>
+    </div>
+
+    <div class="favorites-grid" id="favorites-grid"></div>
+
+    <nav class="bottom-nav">
+    <a href="{{ url_for('main') }}" class="nav-item"><i class="fas fa-home"></i><span>Accueil</span></a>
+    <a href="{{ url_for('search') }}" class="nav-item"><i class="fas fa-search"></i><span>Explorer</span></a>
+    <a href="{{ url_for('reservations') }}" class="nav-item"><i class="far fa-calendar-alt"></i><span>Réservations</span></a>
+    <a href="{{ url_for('favorites') }}" class="nav-item active"><i class="far fa-heart"></i><span>Favoris</span></a>
+    <a href="{{ url_for('profile') }}" class="nav-item"><i class="far fa-user"></i><span>Profil</span></a>
+</nav>
+
+    <script>
+        const destinations = [
+            { id: 'marrakech', name: 'Marrakech', image: '/static/images/img_16c3a22b.jpg', rating: 4.8 },
+            { id: 'chefchaouen', name: 'Chefchaouen', image: '/static/images/chefchaouen.jpg', rating: 4.7 },
+            { id: 'agadir', name: 'Agadir', image: '/static/images/img_262d1233.jpg', rating: 4.7 },
+            { id: 'fes', name: 'Fès', image: '/static/images/fes.jpg', rating: 4.6 }
+        ];
+
+        let favorites = JSON.parse(localStorage.getItem('morocation_favorites')) || [];
+
+        function renderFavorites() {
+            const grid = document.getElementById('favorites-grid');
+            const favDests = destinations.filter(d => favorites.includes(d.id));
+            
+            if (favDests.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="far fa-heart"></i>
+                        <h3>Aucun favori</h3>
+                        <p>Explorez les destinations et ajoutez-les à vos favoris</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = favDests.map(dest => `
+                <div class="favorite-card">
+                    <img src="${dest.image}" class="favorite-image" alt="${dest.name}">
+                    <button class="favorite-heart" onclick="removeFavorite('${dest.id}')">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <div class="favorite-info">
+                        <h3 class="favorite-name">${dest.name}</h3>
+                        <div class="favorite-rating">
+                            <i class="fas fa-star"></i>
+                            <span>${dest.rating}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeFavorite(id) {
+            favorites = favorites.filter(f => f !== id);
+            localStorage.setItem('morocation_favorites', JSON.stringify(favorites));
+            renderFavorites();
+        }
+
+        renderFavorites();
+    </script>
+</body>
+</html>

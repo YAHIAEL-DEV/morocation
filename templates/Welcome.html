@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoroCation - Welcome</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2027 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('/static/images/img_703e1155.jpg') center/cover;
+            opacity: 0.3;
+        }
+        
+        .content { position: relative; z-index: 1; }
+        
+        .logo { font-size: 48px; margin-bottom: 10px; }
+        .brand-name { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+        .tagline { font-size: 18px; opacity: 0.9; margin-bottom: 40px; font-weight: 300; }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 32px;
+            border-radius: 50px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 12px;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .btn-white {
+            flex: 1;
+            background: white;
+            color: #1f2937;
+        }
+        .btn-blue {
+            flex: 1;
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-white:hover {
+            background: #cccbd1;
+            transform: translateY(-2px);
+        }
+         .btn-blue:hover {
+            background: #302ddfe0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="logo">MC</div>
+        <h1 class="brand-name">MoroCation</h1>
+        <p class="tagline">Découvrez le Maroc<br>Comme jamais auparavant</p>
+        
+        <button class="btn btn-primary" onclick="location.href='Main.html'">
+            Commencer 
+        </button>
+        
+        <div class="auth-buttons">
+            <button class="btn btn-white" onclick="location.href='login.html'">Connexion</button>
+            <button class="btn btn-blue" onclick="location.href='3Register.html'">Inscription</button>
+        </div>
+    </div>
+</body>
+</html>

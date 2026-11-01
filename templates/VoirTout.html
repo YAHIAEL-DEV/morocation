@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toutes les destinations - MoroCation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f5f5; padding-bottom: 80px; }
+        .app-header { padding: 16px 20px; background: white; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #f3f4f6; }
+        .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .back-btn { width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+        .header-title { flex: 1; font-size: 20px; font-weight: 700; }
+        .search-bar { display: flex; align-items: center; gap: 12px; background: #f3f4f6; padding: 12px 16px; border-radius: 12px; }
+        .search-bar input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; }
+        .filters { padding: 16px 20px; display: flex; gap: 10px; overflow-x: auto; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-chip { padding: 8px 16px; border-radius: 20px; border: 1px solid #e5e7eb; background: white; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .filter-chip.active { background: #10b981; color: white; border-color: #10b981; }
+        .destinations-grid { padding: 0 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .destination-card { border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; }
+        .destination-image { width: 100%; height: 160px; object-fit: cover; background: #e5e7eb; }
+        .destination-info { padding: 14px; }
+        .destination-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .destination-region { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+        .destination-rating { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .destination-rating i { color: #f59e0b; }
+        .destination-price { margin-top: 8px; font-size: 14px; font-weight: 600; color: #10b981; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-around; padding: 12px 0 20px; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #6b7280; text-decoration: none; font-size: 12px; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="header-top">
+            <button class="back-btn" onclick="history.back()"><i class="fas fa-arrow-left"></i></button>
+            <h1 class="header-title">Toutes les destinations</h1>
+            <div style="width: 40px;"></div>
+        </div>
+        <div class="search-bar">
+            <i class="fas fa-search" style="color: #6b7280;"></i>
+            <input type="text" id="searchInput" placeholder="Rechercher une ville..." oninput="filterDestinations()">
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-chip active" onclick="filterByRegion('all', this)">Tout</button>
+        <button class="filter-chip" onclick="filterByRegion('nord', this)">Nord</button>
+        <button class="filter-chip" onclick="filterByRegion('sud', this)">Sud</button>
+        <button class="filter-chip" onclick="filterByRegion('est', this)">Est</button>
+        <button class="filter-chip" onclick="filterByRegion('ouest', this)">Ouest</button>
+        <button class="filter-chip" onclick="filterByRegion('centre', this)">Centre</button>
+        <button class="filter-chip" onclick="filterByRegion('cote', this)">Côtière</button>
+    </div>
+
+    <div class="destinations-grid" id="destinations-grid"></div>
+
+    <nav class="bottom-nav">
+        <a href="{{ url_for('main') }}" class="nav-item active"><i class="fas fa-home"></i><span>Accueil</span></a>
+        <a href="{{ url_for('search') }}" class="nav-item"><i class="fas fa-search"></i><span>Explorer</span></a>
+        <a href="{{ url_for('reservations') }}" class="nav-item"><i class="far fa-calendar-alt"></i><span>Réservations</span></a>
+        <a href="{{ url_for('favorites') }}" class="nav-item"><i class="far fa-heart"></i><span>Favoris</span></a>
+        <a href="{{ url_for('profile') }}" class="nav-item"><i class="far fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <script>
+        const allDestinations = [
+            { id: 'tanger', name: 'Tanger', region: 'nord', image: '/static/images/img_12aa886d.jpg', rating: 4.5, reviews: 190, price: '80€/nuit' },
+            { id: 'tetouan', name: 'Tétouan', region: 'nord', image: '/static/images/img_262d1233.jpg', rating: 4.4, reviews: 120, price: '70€/nuit' },
+            { id: 'chefchaouen', name: 'Chefchaouen', region: 'nord', image: '/static/images/img_69e04fd7.jpg', rating: 4.7, reviews: 280, price: '65€/nuit' },
+            { id: 'alhoceima', name: 'Al Hoceïma', region: 'nord', image: '/static/images/img_7ea0e4ee.jpg', rating: 4.3, reviews: 85, price: '60€/nuit' },
+            { id: 'oujda', name: 'Oujda', region: 'nord', image: '/static/images/img_f4bb4263.jpg', rating: 4.2, reviews: 95, price: '55€/nuit' },
+            { id: 'nador', name: 'Nador', region: 'nord', image: '/static/images/img_50ad73a9.jpg', rating: 4.1, reviews: 70, price: '50€/nuit' },
+            { id: 'agadir', name: 'Agadir', region: 'sud', image: '/static/images/img_50a31e99.jpg', rating: 4.7, reviews: 250, price: '90€/nuit' },
+            { id: 'marrakech', name: 'Marrakech', region: 'sud', image: '/static/images/img_5bb18e93.jpg', rating: 4.8, reviews: 320, price: '120€/nuit' },
+            { id: 'essaouira', name: 'Essaouira', region: 'sud', image: '/static/images/img_ab14d42b.jpg', rating: 4.6, reviews: 175, price: '85€/nuit' },
+            { id: 'ouarzazate', name: 'Ouarzazate', region: 'sud', image: '/static/images/img_e558843e.jpg', rating: 4.5, reviews: 140, price: '75€/nuit' },
+            { id: 'zagora', name: 'Zagora', region: 'sud', image: '/static/images/img_e7b38efb.jpg', rating: 4.3, reviews: 90, price: '55€/nuit' },
+            { id: 'dakhla', name: 'Dakhla', region: 'sud', image: '/static/images/img_1c21389b.jpg', rating: 4.6, reviews: 110, price: '100€/nuit' },
+            { id: 'laayoune', name: 'Laâyoune', region: 'sud', image: '/static/images/img_2ddb5e79.jpg', rating: 4.2, reviews: 80, price: '70€/nuit' },
+            { id: 'tan-tan', name: 'Tan-Tan', region: 'sud', image: '/static/images/img_9cccf9dd.jpg', rating: 4.0, reviews: 45, price: '45€/nuit' },
+            { id: 'fes', name: 'Fès', region: 'est', image: '/static/images/img_c435ef6a.jpg', rating: 4.6, reviews: 210, price: '95€/nuit' },
+            { id: 'meknes', name: 'Meknès', region: 'est', image: '/static/images/img_68ecbae1.jpg', rating: 4.4, reviews: 150, price: '80€/nuit' },
+            { id: 'ifrane', name: 'Ifrane', region: 'est', image: '/static/images/img_61e9024b.jpg', rating: 4.5, reviews: 130, price: '85€/nuit' },
+            { id: 'azrou', name: 'Azrou', region: 'est', image: '/static/images/img_08585610.jpg', rating: 4.3, reviews: 100, price: '60€/nuit' },
+            { id: 'errachidia', name: 'Errachidia', region: 'est', image: '/static/images/img_b98f2a04.jpg', rating: 4.1, reviews: 65, price: '50€/nuit' },
+            { id: 'midelt', name: 'Midelt', region: 'est', image: '/static/images/img_2fb77b29.jpg', rating: 4.0, reviews: 55, price: '45€/nuit' },
+            { id: 'casablanca', name: 'Casablanca', region: 'ouest', image: '/static/images/img_16c3a22b.jpg', rating: 4.6, reviews: 300, price: '110€/nuit' },
+            { id: 'rabat', name: 'Rabat', region: 'ouest', image: '/static/images/img_703e1155.jpg', rating: 4.5, reviews: 220, price: '100€/nuit' },
+            { id: 'el-jadida', name: 'El Jadida', region: 'ouest', image: '/static/images/img_ec8d3b37.jpg', rating: 4.3, reviews: 140, price: '75€/nuit' },
+            { id: 'safi', name: 'Safi', region: 'ouest', image: '/static/images/img_b8a16fa8.jpg', rating: 4.2, reviews: 110, price: '60€/nuit' },
+            { id: 'kenitra', name: 'Kénitra', region: 'ouest', image: '/static/images/img_455a0555.jpg', rating: 4.1, reviews: 95, price: '55€/nuit' },
+            { id: 'mohammedia', name: 'Mohammedia', region: 'ouest', image: '/static/images/img_7f3b1975.jpg', rating: 4.0, reviews: 80, price: '50€/nuit' },
+            { id: 'beni-mellal', name: 'Beni Mellal', region: 'centre', image: '/static/images/img_4831c142.jpg', rating: 4.1, reviews: 85, price: '50€/nuit' },
+            { id: 'khenifra', name: 'Khenifra', region: 'centre', image: '/static/images/img_57450ec8.jpg', rating: 4.0, reviews: 60, price: '45€/nuit' },
+            { id: 'azilal', name: 'Azilal', region: 'centre', image: '/static/images/img_262d1233.jpg', rating: 4.2, reviews: 75, price: '55€/nuit' },
+            { id: 'khouribga', name: 'Khouribga', region: 'centre', image: '/static/images/img_69e04fd7.jpg', rating: 3.9, reviews: 50, price: '40€/nuit' },
+            { id: 'saidia', name: 'Saïdia', region: 'cote', image: '/static/images/img_50a31e99.jpg', rating: 4.4, reviews: 160, price: '85€/nuit' },
+            { id: 'martil', name: 'Martil', region: 'cote', image: '/static/images/img_5bb18e93.jpg', rating: 4.2, reviews: 100, price: '65€/nuit' },
+            { id: 'mirleft', name: 'Mirleft', region: 'cote', image: '/static/images/img_ab14d42b.jpg', rating: 4.3, reviews: 70, price: '55€/nuit' },
+            { id: 'sidi-ifni', name: 'Sidi Ifni', region: 'cote', image: '/static/images/img_e558843e.jpg', rating: 4.2, reviews: 65, price: '50€/nuit' }
+        ];
+
+        let currentFilter = 'all';
+        let searchTerm = '';
+
+        function renderDestinations() {
+            const grid = document.getElementById('destinations-grid');
+            let filtered = allDestinations;
+            if (currentFilter !== 'all') filtered = filtered.filter(d => d.region === currentFilter);
+            if (searchTerm) filtered = filtered.filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            grid.innerHTML = filtered.map(dest => `
+                <div class="destination-card" onclick="location.href='/destination/${dest.name}'">
+                    <img src="${dest.image}" class="destination-image" alt="${dest.name}" onerror="this.src='/static/images/img_5bb18e93.jpg'">
+                    <div class="destination-info">
+                        <h3 class="destination-name">${dest.name}</h3>
+                        <p class="destination-region">${getRegionName(dest.region)}</p>
+                        <div class="destination-rating"><i class="fas fa-star"></i><span>${dest.rating}</span><span>(${dest.reviews} avis)</span></div>
+                        <div class="destination-price">À partir de ${dest.price}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getRegionName(region) {
+            const names = { 'nord': 'Nord du Maroc', 'sud': 'Sud du Maroc', 'est': 'Est du Maroc', 'ouest': 'Ouest du Maroc', 'centre': 'Centre du Maroc', 'cote': 'Côte Atlantique / Méditerranée' };
+            return names[region] || region;
+        }
+
+        function filterByRegion(region, element) {
+            document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            currentFilter = region;
+            renderDestinations();
+        }
+
+        function filterDestinations() {
+            searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            renderDestinations();
+        }
+
+        renderDestinations();
+    </script>
+</body>
+</html>
